@@ -7,11 +7,10 @@ namespace Unity.ObjectPooling
 {
     public class BehaviourPoolManager<T> : IPool<T> where T : MonoBehaviour
     {
-        private readonly List<T> activeItems = new List<T>();
-
         public Segment<T> ActiveItems
             => this.activeItems;
 
+        private readonly List<T> activeItems = new List<T>();
         private readonly Queue<T> pool = new Queue<T>();
         private readonly IInstantiateObject<T> instantiator;
 
@@ -46,6 +45,28 @@ namespace Unity.ObjectPooling
 
             item.gameObject.SetActive(false);
             this.pool.Enqueue(item);
+        }
+
+        public void Return(params T[] items)
+        {
+            if (items == null)
+                return;
+
+            foreach (var item in items)
+            {
+                Return(item);
+            }
+        }
+
+        public void Return(IEnumerable<T> items)
+        {
+            if (items == null)
+                return;
+
+            foreach (var item in items)
+            {
+                Return(item);
+            }
         }
 
         public void ReturnAll()

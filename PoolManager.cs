@@ -5,11 +5,10 @@ namespace Unity.ObjectPooling
 {
     public class PoolManager<T> : IPool<T> where T : class, new()
     {
-        private readonly List<T> activeItems = new List<T>();
-
         public Segment<T> ActiveItems
             => this.activeItems;
 
+        private readonly List<T> activeItems = new List<T>();
         private readonly Queue<T> pool = new Queue<T>();
 
         public UniTask<bool> Prepool(int count)
@@ -31,6 +30,28 @@ namespace Unity.ObjectPooling
                 this.activeItems.Remove(item);
 
             this.pool.Enqueue(item);
+        }
+
+        public void Return(params T[] items)
+        {
+            if (items == null)
+                return;
+
+            foreach (var item in items)
+            {
+                Return(item);
+            }
+        }
+
+        public void Return(IEnumerable<T> items)
+        {
+            if (items == null)
+                return;
+
+            foreach (var item in items)
+            {
+                Return(item);
+            }
         }
 
         public void ReturnAll()
