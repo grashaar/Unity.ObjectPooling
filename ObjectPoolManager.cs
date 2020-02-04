@@ -112,6 +112,28 @@ namespace Unity.ObjectPooling
                 item.SetActive(false);
         }
 
+        public void Return(params GameObject[] items)
+        {
+            if (items == null)
+                return;
+
+            foreach (var item in items)
+            {
+                Return(item);
+            }
+        }
+
+        public void Return(IEnumerable<GameObject> items)
+        {
+            if (items == null)
+                return;
+
+            foreach (var item in items)
+            {
+                Return(item);
+            }
+        }
+
         [Serializable]
         private class ObjectPoolMap : Dictionary<string, PoolController> { }
     }
