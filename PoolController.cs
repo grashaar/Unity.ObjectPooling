@@ -242,6 +242,21 @@ namespace Unity.ObjectPooling
             }
         }
 
+        public void DestroyAll()
+        {
+            foreach (var list in this.objectMap.Values)
+            {
+                for (var i = list.Count - 1; i >= 0; i--)
+                {
+                    Destroy(list[i]);
+                }
+            }
+
+            this.objectMap.Clear();
+            this.itemMap.Clear();
+            this.tempList.Clear();
+        }
+
         [Serializable]
         private class PoolItemMap : Dictionary<string, PoolItem> { }
 

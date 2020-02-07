@@ -143,6 +143,18 @@ namespace Unity.ObjectPooling
             }
         }
 
+        public void Deinitialize()
+        {
+            var pools = this.poolsRoot.GetComponentsInChildren<PoolController>();
+
+            foreach (var pool in pools)
+            {
+                pool.DestroyAll();
+            }
+
+            this.poolMap.Clear();
+        }
+
         [Serializable]
         private class ObjectPoolMap : Dictionary<string, PoolController> { }
     }
