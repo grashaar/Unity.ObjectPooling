@@ -10,10 +10,19 @@ namespace Unity.ObjectPooling
         [SerializeField]
         private GameObject poolsRoot = null;
 
+        [SerializeField]
+        private bool initializeOnAwake = true;
+
         private readonly ObjectPoolMap poolMap = new ObjectPoolMap();
         private bool isPrepooled = false;
 
         protected void Awake()
+        {
+            if (this.initializeOnAwake)
+                Initialize();
+        }
+
+        public void Initialize()
         {
             if (!this.poolsRoot)
             {
@@ -49,7 +58,7 @@ namespace Unity.ObjectPooling
                         continue;
                     }
 
-                    pool.Initialize();
+                    pool.PrepareItemMap();
                     this.poolMap.Add(item.Key, pool);
                 }
             }

@@ -23,7 +23,40 @@ namespace Unity.ObjectPooling
 
         private bool isPrepooled = false;
 
-        public void Initialize()
+        public void Register(PoolItem item)
+        {
+            if (item == null)
+                return;
+
+            var index = this.items.FindIndex(x => string.Equals(x.Key, item.Key));
+
+            if (index < 0)
+                this.items.Add(item);
+        }
+
+        public void Deregister(PoolItem item)
+        {
+            if (item == null)
+                return;
+
+            var index = this.items.FindIndex(x => string.Equals(x.Key, item.Key));
+
+            if (index >= 0)
+                this.items.RemoveAt(index);
+        }
+
+        public void Deregister(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return;
+
+            var index = this.items.FindIndex(x => string.Equals(x.Key, key));
+
+            if (index >= 0)
+                this.items.RemoveAt(index);
+        }
+
+        public void PrepareItemMap()
         {
             this.itemMap.Clear();
 
