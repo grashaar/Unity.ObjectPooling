@@ -1,8 +1,7 @@
 {
     "name": "Unity.ObjectPooling",
     "references": [
-        "UnityCore",
-        "UniRx.Async"
+        "UnityCore"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using UniRx.Async;
+using System.Threading.Tasks;
 
 namespace Unity.ObjectPooling
 {
@@ -11,14 +11,14 @@ namespace Unity.ObjectPooling
         private readonly List<T> activeItems = new List<T>();
         private readonly Queue<T> pool = new Queue<T>();
 
-        public UniTask<bool> Prepool(int count)
+        public Task<bool> Prepool(int count)
         {
             for (var i = 0; i < count; i++)
             {
                 this.pool.Enqueue(new T());
             }
 
-            return UniTask.FromResult(true);
+            return Task.FromResult(true);
         }
 
         public void Return(T item)

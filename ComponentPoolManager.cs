@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
-using UniRx.Async;
 
 namespace Unity.ObjectPooling
 {
@@ -19,7 +19,7 @@ namespace Unity.ObjectPooling
             this.instantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
         }
 
-        public UniTask<bool> Prepool(int count)
+        public Task<bool> Prepool(int count)
         {
             for (var i = 0; i < count; i++)
             {
@@ -32,7 +32,7 @@ namespace Unity.ObjectPooling
                 this.pool.Enqueue(item);
             }
 
-            return UniTask.FromResult(true);
+            return Task.FromResult(true);
         }
 
         public void Return(T item)

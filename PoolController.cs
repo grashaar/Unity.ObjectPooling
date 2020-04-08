@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
-using UniRx.Async;
 
 namespace Unity.ObjectPooling
 {
@@ -83,10 +83,10 @@ namespace Unity.ObjectPooling
             }
         }
 
-        public UniTask<bool> Prepool()
+        public Task<bool> Prepool()
         {
             if (this.isPrepooled)
-                return UniTask.FromResult(true);
+                return Task.FromResult(true);
 
             if (!this.poolRoot)
             {
@@ -119,7 +119,7 @@ namespace Unity.ObjectPooling
             }
 
             this.isPrepooled = true;
-            return UniTask.FromResult(true);
+            return Task.FromResult(true);
         }
 
         public void ReturnAll()
