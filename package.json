@@ -1,7 +1,7 @@
 {
   "name": "com.grashaar.unity-objectpooling",
   "displayName": "Unity.ObjectPooling",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "unity": "2019.1",
   "license": "MIT",
   "keywords": [
@@ -14,6 +14,6 @@
   },
   "author": "Grashaar <grashaar@outlook.com> (https://github.com/grashaar)",
   "dependencies": {
-    "com.grashaar.unity-core": "0.0.3"
+    "com.laicasaane.unity-supplements": "1.0.0"
   }
 }
