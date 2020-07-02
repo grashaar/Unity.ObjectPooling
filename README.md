@@ -10,7 +10,7 @@
 - Automatically enable Addressables-related classes if the package is present.
 
 ## API
-- System.Collection.Generic
+- System.Collections.Generic
     - [IPool\<T>](https://github.com/grashaar/Unity.ObjectPooling/blob/master/System.Collections.Generic/IPool.cs)
     - [IAsyncPool\<T>](https://github.com/grashaar/Unity.ObjectPooling/blob/master/System.Collections.Generic/IAsyncPool.cs)
     - [Pool\<T>](https://github.com/grashaar/Unity.ObjectPooling/blob/master/System.Collections.Generic/Pool.cs)
