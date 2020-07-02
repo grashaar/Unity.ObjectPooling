@@ -1,22 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine;
 
-namespace Unity.ObjectPooling
+#if UNITY_OBJECTPOOLING_UNITASK
+using Cysharp.Threading.Tasks;
+#else
+using System.Threading.Tasks;
+#endif
+
+namespace UnityEngine.AddressableAssets
 {
-    public class ObjectPoolManager : MonoBehaviour, IPool<GameObject>
+    public sealed class AddressableGameObjectPoolerManager : MonoBehaviour, IAsyncPool<GameObject>
     {
+#if UNITY_OBJECTPOOLING_ADDRESSABLES
         [SerializeField]
-        private GameObject poolsRoot = null;
+        private GameObject poolersRoot = null;
 
         [SerializeField]
         private bool initializeOnAwake = true;
 
-        private readonly ObjectPoolMap poolMap = new ObjectPoolMap();
+        private readonly PoolerMap poolerMap = new PoolerMap();
         private bool isPrepooled = false;
 
-        protected void Awake()
+        private void Awake()
         {
             if (this.initializeOnAwake)
                 Initialize();
@@ -24,12 +29,12 @@ namespace Unity.ObjectPooling
 
         public void Initialize()
         {
-            if (!this.poolsRoot)
+            if (!this.poolersRoot)
             {
-                this.poolsRoot = this.gameObject;
+                this.poolersRoot = this.gameObject;
             }
 
-            var pools = this.poolsRoot.GetComponentsInChildren<PoolController>();
+            var pools = this.poolersRoot.GetComponentsInChildren<AddressableGameObjectPooler>();
 
             for (var i = 0; i < pools.Length; i++)
             {
@@ -52,29 +57,33 @@ namespace Unity.ObjectPooling
                         continue;
                     }
 
-                    if (this.poolMap.ContainsKey(item.Key))
+                    if (this.poolerMap.ContainsKey(item.Key))
                     {
                         Debug.LogWarning($"Pool key={item.Key} has already been existing", pool);
                         continue;
                     }
 
                     pool.PrepareItemMap();
-                    this.poolMap.Add(item.Key, pool);
+                    this.poolerMap.Add(item.Key, pool);
                 }
             }
         }
 
-        public async Task Prepool()
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask PrepoolAsync()
+#else
+        public async Task PrepoolAsync()
+#endif
         {
             if (this.isPrepooled)
                 return;
 
-            foreach (var pool in this.poolMap.Values)
+            foreach (var pool in this.poolerMap.Values)
             {
                 if (!pool)
                     continue;
 
-                await pool.Prepool();
+                await pool.PrepoolAsync();
             }
 
             this.isPrepooled = true;
@@ -82,7 +91,7 @@ namespace Unity.ObjectPooling
 
         public void ReturnAll()
         {
-            foreach (var pool in this.poolMap.Values)
+            foreach (var pool in this.poolerMap.Values)
             {
                 if (!pool)
                     continue;
@@ -91,7 +100,17 @@ namespace Unity.ObjectPooling
             }
         }
 
+        [Obsolete("This method has been deprecated. Use GetAsync instead.")]
         public GameObject Get(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask<GameObject> GetAsync(string key)
+#else
+        public async Task<GameObject> GetAsync(string key)
+#endif
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -99,13 +118,13 @@ namespace Unity.ObjectPooling
                 return null;
             }
 
-            if (!this.poolMap.ContainsKey(key))
+            if (!this.poolerMap.TryGetValue(key, out var pooler))
             {
                 Debug.LogWarning($"Key={key} does not exist");
                 return null;
             }
 
-            var obj = this.poolMap[key].Get(key);
+            var obj = await pooler.GetAsync(key);
 
             if (!obj)
             {
@@ -145,17 +164,16 @@ namespace Unity.ObjectPooling
 
         public void Deinitialize()
         {
-            var pools = this.poolsRoot.GetComponentsInChildren<PoolController>();
-
-            foreach (var pool in pools)
+            foreach (var pool in this.poolerMap.Values)
             {
                 pool.DestroyAll();
             }
 
-            this.poolMap.Clear();
+            this.poolerMap.Clear();
         }
 
         [Serializable]
-        private class ObjectPoolMap : Dictionary<string, PoolController> { }
+        private class PoolerMap : Dictionary<string, AddressableGameObjectPooler> { }
+#endif
     }
 }

@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Unity.ObjectPooling
+﻿namespace System.Collections.Generic
 {
-    public class PoolManager<T> : IPool<T> where T : class, new()
+    public class Pool<T> : IPool<T> where T : class, new()
     {
         public Segment<T> ActiveItems
             => this.activeItems;
@@ -11,14 +8,12 @@ namespace Unity.ObjectPooling
         private readonly List<T> activeItems = new List<T>();
         private readonly Queue<T> pool = new Queue<T>();
 
-        public Task<bool> Prepool(int count)
+        public void Prepool(int count)
         {
             for (var i = 0; i < count; i++)
             {
                 this.pool.Enqueue(new T());
             }
-
-            return Task.FromResult(true);
         }
 
         public void Return(T item)

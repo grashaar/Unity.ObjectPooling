@@ -1,7 +1,8 @@
 {
     "name": "Unity.ObjectPooling",
     "references": [
-        "Unity.Supplements"
+        "Unity.Supplements",
+        "UniTask"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
@@ -11,5 +12,11 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [
+        {
+            "name": "com.cysharp.unitask",
+            "expression": "",
+            "define": "UNITY_OBJECTPOOLING_UNITASK"
+        }
+    ]
 }

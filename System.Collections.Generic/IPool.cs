@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Unity.ObjectPooling
+﻿namespace System.Collections.Generic
 {
     public interface IGetOnlyPool<T>
     {

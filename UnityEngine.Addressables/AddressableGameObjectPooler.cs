@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine;
 
-namespace Unity.ObjectPooling
+#if UNITY_OBJECTPOOLING_UNITASK
+using Cysharp.Threading.Tasks;
+#else
+using System.Threading.Tasks;
+#endif
+
+namespace UnityEngine.AddressableAssets
 {
-    public class PoolController : MonoBehaviour, IPool<GameObject>
+    public sealed class AddressableGameObjectPooler : MonoBehaviour, IAsyncPool<GameObject>
     {
+#if UNITY_OBJECTPOOLING_ADDRESSABLES
+
         [SerializeField]
         private Transform poolRoot = null;
 
@@ -17,9 +23,9 @@ namespace Unity.ObjectPooling
         public IReadOnlyList<PoolItem> Items
             => this.items;
 
-        private readonly PoolItemMap itemMap = new PoolItemMap();
-        private readonly ObjectListMap objectMap = new ObjectListMap();
-        private readonly List<ObjectList> tempList = new List<ObjectList>();
+        private readonly ItemMap itemMap = new ItemMap();
+        private readonly GameObjectListMap listMap = new GameObjectListMap();
+        private readonly List<GameObjectList> lists = new List<GameObjectList>();
 
         private bool isPrepooled = false;
 
@@ -83,15 +89,17 @@ namespace Unity.ObjectPooling
             }
         }
 
-        public Task<bool> Prepool()
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask PrepoolAsync()
+#else
+        public async Task PrepoolAsync()
+#endif
         {
             if (this.isPrepooled)
-                return Task.FromResult(true);
+                return;
 
             if (!this.poolRoot)
-            {
                 this.poolRoot = this.transform;
-            }
 
             for (var i = 0; i < this.items.Count; i++)
             {
@@ -103,36 +111,31 @@ namespace Unity.ObjectPooling
                 if (!this.itemMap.ContainsKey(item.Key))
                     this.itemMap.Add(item.Key, item);
 
-                var list = new ObjectList();
+                var list = new GameObjectList();
 
                 for (var k = 0; k < item.PrepoolAmount; k++)
                 {
-                    var obj = Instantiate(item.ObjectToPool);
-                    obj.name = $"{item.ObjectToPool.name}-{k}";
-                    obj.transform.SetParent(this.poolRoot, true);
-                    obj.SetActive(false);
-
+                    var obj = await Instantiate(item, k);
                     list.Add(obj);
                 }
 
-                this.objectMap.Add(item.Key, list);
+                this.listMap.Add(item.Key, list);
             }
 
             this.isPrepooled = true;
-            return Task.FromResult(true);
         }
 
         public void ReturnAll()
         {
-            this.tempList.Clear();
-            this.tempList.AddRange(this.objectMap.Values);
+            this.lists.Clear();
+            this.lists.AddRange(this.listMap.Values);
 
-            for (var i = 0; i < this.tempList.Count; i++)
+            for (var i = 0; i < this.lists.Count; i++)
             {
-                if (this.tempList[i] == null)
+                if (this.lists[i] == null)
                     continue;
 
-                var list = this.tempList[i];
+                var list = this.lists[i];
 
                 for (var k = 0; k < list.Count; k++)
                 {
@@ -141,10 +144,20 @@ namespace Unity.ObjectPooling
                 }
             }
 
-            this.tempList.Clear();
+            this.lists.Clear();
         }
 
+        [Obsolete("This method has been deprecated. Use GetAsync instead.")]
         public GameObject Get(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask<GameObject> GetAsync(string key)
+#else
+        public async Task<GameObject> GetAsync(string key)
+#endif
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -152,13 +165,11 @@ namespace Unity.ObjectPooling
                 return null;
             }
 
-            if (!this.objectMap.ContainsKey(key))
+            if (!this.listMap.TryGetValue(key, out var list))
             {
                 Debug.LogWarning($"Key={key} does not exist", this);
                 return null;
             }
-
-            var list = this.objectMap[key];
 
             for (var i = 0; i < list.Count; i++)
             {
@@ -168,7 +179,7 @@ namespace Unity.ObjectPooling
                     return item;
             }
 
-            if (!this.itemMap.ContainsKey(key))
+            if (!this.itemMap.TryGetValue(key, out var poolItem))
             {
                 Debug.LogWarning($"Key={key} is not defined", this);
                 return null;
@@ -180,14 +191,21 @@ namespace Unity.ObjectPooling
                 return null;
             }
 
-            var poolItem = this.itemMap[key];
-
-            var obj = Instantiate(poolItem.ObjectToPool);
-            obj.name = $"{poolItem.ObjectToPool.name}-{list.Count}";
-            obj.transform.SetParent(this.poolRoot, true);
-            obj.SetActive(false);
-
+            var obj = await Instantiate(poolItem, list.Count);
             list.Add(obj);
+
+            return obj;
+    }
+
+#if UNITY_OBJECTPOOLING_UNITASK
+        private async UniTask<GameObject> Instantiate(PoolItem item, int number)
+#else
+        private async Task<GameObject> Instantiate(PoolItem item, int number)
+#endif
+        {
+            var obj = await AddressableGameObjectInstantiator.InstantiateAsync(item.Object, this.poolRoot, true);
+            obj.name = $"{item.Key}-{number}";
+            obj.SetActive(false);
 
             return obj;
         }
@@ -205,7 +223,7 @@ namespace Unity.ObjectPooling
                 return false;
             }
 
-            if (this.objectMap.ContainsKey(item.Key))
+            if (this.listMap.ContainsKey(item.Key))
             {
                 Debug.LogWarning($"Pool key={item.Key} has already been existing", this);
                 return false;
@@ -244,26 +262,47 @@ namespace Unity.ObjectPooling
 
         public void DestroyAll()
         {
-            foreach (var list in this.objectMap.Values)
+            foreach (var item in this.items)
             {
+                if (!this.listMap.TryGetValue(item.Key, out var list))
+                    continue;
+
                 for (var i = list.Count - 1; i >= 0; i--)
                 {
-                    Destroy(list[i]);
+                    item.Object.ReleaseInstance(list[i]);
                 }
             }
 
-            this.objectMap.Clear();
-            this.itemMap.Clear();
-            this.tempList.Clear();
+            foreach (var list in this.listMap.Values)
+            {
+                for (var i = list.Count - 1; i >= 0; i--)
+                {
+                    if (list[i])
+                        Destroy(list[i]);
+                }
+            }
+
+            this.listMap.Clear();
+            this.lists.Clear();
         }
 
         [Serializable]
-        private class PoolItemMap : Dictionary<string, PoolItem> { }
+        public class PoolItem
+        {
+            public string Key;
+            public AssetReferenceGameObject Object;
+            public int PrepoolAmount;
+        }
 
         [Serializable]
-        private class ObjectListMap : Dictionary<string, ObjectList> { }
+        private class ItemMap : Dictionary<string, PoolItem> { }
 
         [Serializable]
-        private class ObjectList : List<GameObject> { }
+        private class GameObjectListMap : Dictionary<string, GameObjectList> { }
+
+        [Serializable]
+        private class GameObjectList : List<GameObject> { }
+
+#endif
     }
 }

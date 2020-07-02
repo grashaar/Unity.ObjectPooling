@@ -1,26 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine;
 
-namespace Unity.ObjectPooling
+#if UNITY_OBJECTPOOLING_UNITASK
+using Cysharp.Threading.Tasks;
+#else
+using System.Threading.Tasks;
+#endif
+
+namespace UnityEngine
 {
-    public class ComponentPoolManager<T> : IPool<T> where T : Component
+    public class ComponentPool<T> : IPool<T> where T : Component
     {
+        protected static readonly Type ComponentType = typeof(T);
+
         public Segment<T> ActiveItems
             => this.activeItems;
 
         private readonly List<T> activeItems = new List<T>();
         private readonly Queue<T> pool = new Queue<T>();
-        private readonly IInstantiateObject<T> instantiator;
+        private readonly IInstantiator<T> instantiator;
+        private readonly AsyncInstantiator<T> asyncInstantiator;
 
-        public ComponentPoolManager(IInstantiateObject<T> instantiator)
+        public ComponentPool(IInstantiator<T> instantiator)
         {
             this.instantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
         }
 
-        public Task<bool> Prepool(int count)
+        public ComponentPool(AsyncInstantiator<T> instantiator)
         {
+            this.asyncInstantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
+        }
+
+        public void Prepool(int count)
+        {
+            if (this.instantiator == null)
+                throw new InvalidOperationException($"This instance of {GetType().Name}" +
+                                                    $" has not been initialized with any instance of" +
+                                                    $" {nameof(IInstantiator<T>)}<{ComponentType.Name}>.");
+
             for (var i = 0; i < count; i++)
             {
                 var item = this.instantiator.Instantiate();
@@ -31,8 +48,29 @@ namespace Unity.ObjectPooling
                 item.gameObject.SetActive(false);
                 this.pool.Enqueue(item);
             }
+        }
 
-            return Task.FromResult(true);
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask PrepoolAsync(int count)
+#else
+        public async Task PrepoolAsync(int count)
+#endif
+        {
+            if (this.asyncInstantiator == null)
+                throw new InvalidOperationException($"This instance of {GetType().Name}" +
+                                                    $" has not been initialized with any instance of" +
+                                                    $" {nameof(AsyncInstantiator<T>)}<{ComponentType.Name}>.");
+
+            for (var i = 0; i < count; i++)
+            {
+                var item = await this.asyncInstantiator.InstantiateAsync();
+
+                if (!item)
+                    continue;
+
+                item.gameObject.SetActive(false);
+                this.pool.Enqueue(item);
+            }
         }
 
         public void Return(T item)
