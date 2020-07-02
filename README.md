@@ -25,6 +25,6 @@
     - [GameObjectPoolerManager](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine/GameObjectPoolerManager.cs)
 
 - UnityEngine.AddressableAssets
-    - [AddessableGameObjectPooler](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddessableGameObjectPooler.cs)
+    - [AddressableGameObjectPooler](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddressableGameObjectPooler.cs)
     - [AddressableGameObjectPoolerManager](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddressableGameObjectPoolerManager.cs)
     - [AddressableGameObjectInstantiator](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddressableGameObjectInstantiator.cs)
