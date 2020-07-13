@@ -148,7 +148,7 @@ namespace UnityEngine.AddressableAssets
         }
 
         [Obsolete("This method has been deprecated. Use GetAsync instead.")]
-        public GameObject Get(string key)
+        GameObject IGetOnlyPool<GameObject>.Get(string key)
         {
             throw new NotImplementedException();
         }
