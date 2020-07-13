@@ -23,8 +23,12 @@
     - [AsyncInstantiator](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine/AsyncInstantiator.cs)
     - [GameObjectPooler](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine/GameObjectPooler.cs)
     - [GameObjectPoolerManager](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine/GameObjectPoolerManager.cs)
+    - [GameObjectSpawner](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine/GameObjectSpawner.cs)
+    - [ComponentSpawner](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine/ComponentSpawner.cs)
 
 - UnityEngine.AddressableAssets
     - [AddressableGameObjectPooler](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddressableGameObjectPooler.cs)
     - [AddressableGameObjectPoolerManager](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddressableGameObjectPoolerManager.cs)
     - [AddressableGameObjectInstantiator](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddressableGameObjectInstantiator.cs)
+    - [AddressableGameObjectSpawner](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddressableGameObjectSpawner.cs)
+    - [AddressableComponentSpawner](https://github.com/grashaar/Unity.ObjectPooling/blob/master/UnityEngine.Addressables/AddressableComponentSpawner.cs)
