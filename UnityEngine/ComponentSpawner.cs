@@ -14,33 +14,52 @@ namespace UnityEngine
         [SerializeField]
         private GameObjectPooler pooler = null;
 
-        private readonly List<string> keys
-            = new List<string>();
+        protected GameObjectPoolerManager Manager => this.manager;
 
-        private void OnValidate()
+        protected GameObjectPooler Pooler => this.pooler;
+
+        public ReadList<string> Keys => this.keys;
+
+        private readonly List<string> keys = new List<string>();
+
+        protected virtual void Awake()
         {
             this.manager = GetComponent<GameObjectPoolerManager>();
             this.pooler = GetComponent<GameObjectPooler>();
+
+            RefreshKeys();
         }
 
-        protected void Initialize()
+        public void RefreshKeys()
         {
-            this.manager.Initialize();
+            this.keys.Clear();
+
+            foreach (var item in this.pooler.Items)
+            {
+                if (!this.keys.Contains(item.Key))
+                    this.keys.Add(item.Key);
+            }
+        }
+
+        public void Initialize(bool silent = false)
+        {
+            RefreshKeys();
+
+            this.manager.Initialize(silent);
             this.manager.Prepool();
         }
 
         public void Deinitialize()
         {
-            this.manager.Deinitialize();
-            this.keys.Clear();
+            this.manager.DestroyAll();
 
             OnDeinitialize();
         }
 
-        protected bool ContainsKey(string key)
+        public bool ContainsKey(string key)
             => this.keys.Contains(key);
 
-        protected void RegisterPoolItem(string key, GameObject objectToPool, int prepoolAmount)
+        public void RegisterPoolItem(string key, GameObject objectToPool, int prepoolAmount)
         {
             if (string.IsNullOrEmpty(key))
                 return;
@@ -52,12 +71,27 @@ namespace UnityEngine
                 return;
 
             this.keys.Add(key);
-
             this.pooler.Register(new GameObjectPooler.PoolItem {
                 Key = key,
                 Object = objectToPool,
                 PrepoolAmount = prepoolAmount
             });
+        }
+
+        public void DeregisterPoolItem(string key)
+        {
+            var index = this.keys.FindIndex(x => string.Equals(x, key));
+
+            if (index >= 0)
+                this.keys.RemoveAt(index);
+
+            this.pooler.Deregister(key);
+        }
+
+        public void DeregisterAllPoolItems()
+        {
+            this.keys.Clear();
+            this.pooler.DeregisterAll();
         }
 
         public virtual T Get(string key)

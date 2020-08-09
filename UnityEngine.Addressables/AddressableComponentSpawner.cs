@@ -20,37 +20,56 @@ namespace UnityEngine.AddressableAssets
         [SerializeField]
         private AddressableGameObjectPooler pooler = null;
 
-        private readonly List<string> keys
-            = new List<string>();
+        protected AddressableGameObjectPoolerManager Manager => this.manager;
 
-        private void OnValidate()
+        protected AddressableGameObjectPooler Pooler => this.pooler;
+
+        public ReadList<string> Keys => this.keys;
+
+        private readonly List<string> keys = new List<string>();
+
+        protected virtual void Awake()
         {
             this.manager = GetComponent<AddressableGameObjectPoolerManager>();
             this.pooler = GetComponent<AddressableGameObjectPooler>();
+
+            RefreshKeys();
+        }
+
+        public void RefreshKeys()
+        {
+            this.keys.Clear();
+
+            foreach (var item in this.pooler.Items)
+            {
+                if (!this.keys.Contains(item.Key))
+                    this.keys.Add(item.Key);
+            }
         }
 
 #if UNITY_OBJECTPOOLING_UNITASK
-        protected async UniTask InitializeAsync()
+        public async UniTask InitializeAsync()
 #else
-        protected async Task InitializeAsync()
+        public async Task InitializeAsync(bool silent = false)
 #endif
         {
-            this.manager.Initialize();
+            RefreshKeys();
+
+            this.manager.Initialize(silent);
             await this.manager.PrepoolAsync();
         }
 
         public void Deinitialize()
         {
-            this.manager.Deinitialize();
-            this.keys.Clear();
+            this.manager.DestroyAll();
 
             OnDeinitialize();
         }
 
-        protected bool ContainsKey(string key)
+        public bool ContainsKey(string key)
             => this.keys.Contains(key);
 
-        protected void RegisterPoolItem(string key, AssetReferenceGameObject objectToPool, int prepoolAmount)
+        public void RegisterPoolItem(string key, AssetReferenceGameObject objectToPool, int prepoolAmount)
         {
             if (string.IsNullOrEmpty(key))
                 return;
@@ -62,12 +81,27 @@ namespace UnityEngine.AddressableAssets
                 return;
 
             this.keys.Add(key);
-
             this.pooler.Register(new AddressableGameObjectPooler.PoolItem {
                 Key = key,
                 Object = objectToPool,
                 PrepoolAmount = prepoolAmount
             });
+        }
+
+        public void DeregisterPoolItem(string key)
+        {
+            var index = this.keys.FindIndex(x => string.Equals(x, key));
+
+            if (index >= 0)
+                this.keys.RemoveAt(index);
+
+            this.pooler.Deregister(key);
+        }
+
+        public void DeregisterAllPoolItems()
+        {
+            this.keys.Clear();
+            this.pooler.DeregisterAll();
         }
 
         [System.Obsolete("This method has been deprecated. Use GetAsync instead.")]
