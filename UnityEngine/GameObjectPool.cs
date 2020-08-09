@@ -11,8 +11,7 @@ namespace UnityEngine
 {
     public sealed class GameObjectPool: IPool<GameObject>
     {
-        public Segment<GameObject> ActiveItems
-            => this.activeItems;
+        public ReadList<GameObject> ActiveItems => this.activeItems;
 
         private readonly List<GameObject> activeItems = new List<GameObject>();
         private readonly Queue<GameObject> pool = new Queue<GameObject>();

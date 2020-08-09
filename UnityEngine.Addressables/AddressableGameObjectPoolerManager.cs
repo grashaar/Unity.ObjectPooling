@@ -19,7 +19,6 @@ namespace UnityEngine.AddressableAssets
         private bool initializeOnAwake = true;
 
         private readonly PoolerMap poolerMap = new PoolerMap();
-        private bool isPrepooled = false;
 
         private void Awake()
         {
@@ -27,7 +26,7 @@ namespace UnityEngine.AddressableAssets
                 Initialize();
         }
 
-        public void Initialize()
+        public void Initialize(bool silent = false)
         {
             if (!this.poolersRoot)
             {
@@ -53,13 +52,17 @@ namespace UnityEngine.AddressableAssets
 
                     if (string.IsNullOrEmpty(item.Key))
                     {
-                        Debug.LogWarning($"Pool key at index={k} is empty", pool);
+                        if (!silent)
+                            Debug.LogWarning($"Pool key at index={k} is empty", pool);
+
                         continue;
                     }
 
                     if (this.poolerMap.ContainsKey(item.Key))
                     {
-                        Debug.LogWarning($"Pool key={item.Key} has already been existing", pool);
+                        if (!silent)
+                            Debug.LogWarning($"Pool key={item.Key} has already been existing", pool);
+
                         continue;
                     }
 
@@ -75,9 +78,6 @@ namespace UnityEngine.AddressableAssets
         public async Task PrepoolAsync()
 #endif
         {
-            if (this.isPrepooled)
-                return;
-
             foreach (var pool in this.poolerMap.Values)
             {
                 if (!pool)
@@ -85,8 +85,6 @@ namespace UnityEngine.AddressableAssets
 
                 await pool.PrepoolAsync();
             }
-
-            this.isPrepooled = true;
         }
 
         public void ReturnAll()
@@ -162,7 +160,7 @@ namespace UnityEngine.AddressableAssets
             }
         }
 
-        public void Deinitialize()
+        public void DestroyAll()
         {
             foreach (var pool in this.poolerMap.Values)
             {

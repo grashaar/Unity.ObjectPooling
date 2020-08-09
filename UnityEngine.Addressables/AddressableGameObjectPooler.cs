@@ -20,14 +20,17 @@ namespace UnityEngine.AddressableAssets
         [SerializeField]
         private List<PoolItem> items = new List<PoolItem>();
 
-        public IReadOnlyList<PoolItem> Items
-            => this.items;
+        public ReadList<PoolItem> Items => this.items;
 
         private readonly ItemMap itemMap = new ItemMap();
         private readonly GameObjectListMap listMap = new GameObjectListMap();
         private readonly List<GameObjectList> lists = new List<GameObjectList>();
+        private readonly List<PoolItem> prepoolList = new List<PoolItem>();
 
-        private bool isPrepooled = false;
+        private void Awake()
+        {
+            this.prepoolList.AddRange(this.items);
+        }
 
         public void Register(PoolItem item)
         {
@@ -49,6 +52,11 @@ namespace UnityEngine.AddressableAssets
 
             if (index >= 0)
                 this.items.RemoveAt(index);
+
+            index = this.prepoolList.FindIndex(x => string.Equals(x.Key, item.Key));
+
+            if (index >= 0)
+                this.prepoolList.RemoveAt(index);
         }
 
         public void Deregister(string key)
@@ -60,6 +68,17 @@ namespace UnityEngine.AddressableAssets
 
             if (index >= 0)
                 this.items.RemoveAt(index);
+
+            index = this.prepoolList.FindIndex(x => string.Equals(x.Key, key));
+
+            if (index >= 0)
+                this.prepoolList.RemoveAt(index);
+        }
+
+        public void DeregisterAll()
+        {
+            this.items.Clear();
+            this.prepoolList.Clear();
         }
 
         public void PrepareItemMap()
@@ -90,23 +109,35 @@ namespace UnityEngine.AddressableAssets
         }
 
 #if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask PrepoolItemsAsync()
+#else
+        public async Task PrepoolItemsAsync()
+#endif
+        {
+            this.prepoolList.Clear();
+            this.prepoolList.AddRange(this.items);
+
+            await PrepoolAsync();
+        }
+
+#if UNITY_OBJECTPOOLING_UNITASK
         public async UniTask PrepoolAsync()
 #else
         public async Task PrepoolAsync()
 #endif
         {
-            if (this.isPrepooled)
+            if (this.prepoolList.Count <= 0)
                 return;
 
             if (!this.poolRoot)
                 this.poolRoot = this.transform;
 
-            for (var i = 0; i < this.items.Count; i++)
+            for (var i = 0; i < this.prepoolList.Count; i++)
             {
                 if (!ValidateItemAt(i))
                     continue;
 
-                var item = this.Items[i];
+                var item = this.prepoolList[i];
 
                 if (!this.itemMap.ContainsKey(item.Key))
                     this.itemMap.Add(item.Key, item);
@@ -122,7 +153,7 @@ namespace UnityEngine.AddressableAssets
                 this.listMap.Add(item.Key, list);
             }
 
-            this.isPrepooled = true;
+            this.prepoolList.Clear();
         }
 
         public void ReturnAll()
@@ -165,18 +196,17 @@ namespace UnityEngine.AddressableAssets
                 return null;
             }
 
-            if (!this.listMap.TryGetValue(key, out var list))
-            {
-                Debug.LogWarning($"Key={key} does not exist", this);
-                return null;
-            }
+            var existed = this.listMap.TryGetValue(key, out var list);
 
-            for (var i = 0; i < list.Count; i++)
+            if (existed)
             {
-                var item = list[i];
+                for (var i = 0; i < list.Count; i++)
+                {
+                    var item = list[i];
 
-                if (item && !item.activeInHierarchy)
-                    return item;
+                    if (item && !item.activeInHierarchy)
+                        return item;
+                }
             }
 
             if (!this.itemMap.TryGetValue(key, out var poolItem))
@@ -189,6 +219,12 @@ namespace UnityEngine.AddressableAssets
             {
                 Debug.LogWarning("Pool root is null", this);
                 return null;
+            }
+
+            if (!existed)
+            {
+                list = new GameObjectList();
+                this.listMap.Add(key, list);
             }
 
             var obj = await Instantiate(poolItem, list.Count);

@@ -2,8 +2,7 @@
 {
     public class Pool<T> : IPool<T> where T : class, new()
     {
-        public Segment<T> ActiveItems
-            => this.activeItems;
+        public ReadList<T> ActiveItems => this.activeItems;
 
         private readonly List<T> activeItems = new List<T>();
         private readonly Queue<T> pool = new Queue<T>();

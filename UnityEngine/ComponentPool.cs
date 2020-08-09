@@ -13,8 +13,7 @@ namespace UnityEngine
     {
         protected static readonly Type ComponentType = typeof(T);
 
-        public Segment<T> ActiveItems
-            => this.activeItems;
+        public ReadList<T> ActiveItems => this.activeItems;
 
         private readonly List<T> activeItems = new List<T>();
         private readonly Queue<T> pool = new Queue<T>();
