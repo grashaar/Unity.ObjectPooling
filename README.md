@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-- [Unity Supplements 1.0.0+](https://openupm.com/packages/com.laicasaane.unity-supplements/)
+- [Unity Supplements 2.0.0+](https://openupm.com/packages/com.laicasaane.unity-supplements/)
 
 ## Notes
 
