@@ -47,7 +47,7 @@ namespace UnityEngine.AddressableAssets
         }
 
 #if UNITY_OBJECTPOOLING_UNITASK
-        public async UniTask InitializeAsync()
+        public async UniTask InitializeAsync(bool silent = false)
 #else
         public async Task InitializeAsync(bool silent = false)
 #endif
