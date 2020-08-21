@@ -30,12 +30,25 @@ namespace UnityEngine
             this.asyncInstantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
         }
 
-        public void Prepool(int count)
+        private void ValidateInstantiator()
         {
             if (this.instantiator == null)
                 throw new InvalidOperationException($"This instance of {GetType().Name}" +
                                                     $" has not been initialized with any instance of" +
                                                     $" {nameof(IInstantiator<T>)}<{ComponentType.Name}>.");
+        }
+
+        private void ValidateAsyncInstantiator()
+        {
+            if (this.asyncInstantiator == null)
+                throw new InvalidOperationException($"This instance of {GetType().Name}" +
+                                                    $" has not been initialized with any instance of" +
+                                                    $" {nameof(AsyncInstantiator<T>)}<{ComponentType.Name}>.");
+        }
+
+        public void Prepool(int count)
+        {
+            ValidateInstantiator();
 
             for (var i = 0; i < count; i++)
             {
@@ -55,10 +68,7 @@ namespace UnityEngine
         public async Task PrepoolAsync(int count)
 #endif
         {
-            if (this.asyncInstantiator == null)
-                throw new InvalidOperationException($"This instance of {GetType().Name}" +
-                                                    $" has not been initialized with any instance of" +
-                                                    $" {nameof(AsyncInstantiator<T>)}<{ComponentType.Name}>.");
+            ValidateAsyncInstantiator();
 
             for (var i = 0; i < count; i++)
             {
@@ -120,6 +130,8 @@ namespace UnityEngine
 
         public T Get(string key = null)
         {
+            ValidateInstantiator();
+
             T item;
 
             if (this.pool.Count > 0)
@@ -131,6 +143,33 @@ namespace UnityEngine
             else
             {
                 item = this.instantiator.Instantiate();
+            }
+
+            if (item)
+                this.activeItems.Add(item);
+
+            return item;
+        }
+
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask<T> GetAsync(string key = null)
+#else
+        public async Task<T> GetAsync(string key = null)
+#endif
+        {
+            ValidateAsyncInstantiator();
+
+            T item;
+
+            if (this.pool.Count > 0)
+            {
+                item = this.pool.Dequeue();
+                item.transform.position = Vector3.zero;
+                item.gameObject.SetActive(true);
+            }
+            else
+            {
+                item = await this.asyncInstantiator.InstantiateAsync();
             }
 
             if (item)
