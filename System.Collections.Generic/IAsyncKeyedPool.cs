@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace System.Collections.Generic
 {
-    public interface IAsyncGetOnlyPool<T>
+    public interface IAsyncKeyedGetOnlyPool<T>
     {
 #if UNITY_OBJECTPOOLING_UNITASK
-        UniTask<T> GetAsync();
+        UniTask<T> GetAsync(string key);
 #else
-        Task<T> GetAsync();
+        Task<T> GetAsync(string key);
 #endif
     }
 
-    public interface IAsyncPool<T> : IAsyncGetOnlyPool<T>, IReturnOnlyPool<T>
+    public interface IAsyncKeyedPool<T> : IAsyncKeyedGetOnlyPool<T>, IReturnOnlyPool<T>
     {
     }
 }

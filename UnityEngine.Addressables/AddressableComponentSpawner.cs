@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace UnityEngine.AddressableAssets
 {
     [RequireComponent(typeof(AddressableGameObjectPoolerManager), typeof(AddressableGameObjectPooler))]
-    public abstract class AddressableComponentSpawner<T> : MonoBehaviour, IAsyncPool<T>
+    public abstract class AddressableComponentSpawner<T> : MonoBehaviour, IAsyncKeyedPool<T>
         where T : Component
     {
         [HideInInspector]
@@ -102,12 +102,6 @@ namespace UnityEngine.AddressableAssets
         {
             this.keys.Clear();
             this.pooler.DeregisterAll();
-        }
-
-        [System.Obsolete("This method has been deprecated. Use GetAsync instead.")]
-        T IGetOnlyPool<T>.Get(string key)
-        {
-            throw new System.NotImplementedException();
         }
 
 #if UNITY_OBJECTPOOLING_UNITASK

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.AddressableAssets
 {
-    public sealed class AddressableGameObjectPooler : MonoBehaviour, IAsyncPool<GameObject>
+    public sealed class AddressableGameObjectPooler : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
 #if UNITY_OBJECTPOOLING_ADDRESSABLES
 
@@ -176,12 +176,6 @@ namespace UnityEngine.AddressableAssets
             }
 
             this.lists.Clear();
-        }
-
-        [Obsolete("This method has been deprecated. Use GetAsync instead.")]
-        GameObject IGetOnlyPool<GameObject>.Get(string key)
-        {
-            throw new NotImplementedException();
         }
 
 #if UNITY_OBJECTPOOLING_UNITASK

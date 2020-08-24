@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.AddressableAssets
 {
-    public sealed class AddressableGameObjectPoolerManager : MonoBehaviour, IAsyncPool<GameObject>
+    public sealed class AddressableGameObjectPoolerManager : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
 #if UNITY_OBJECTPOOLING_ADDRESSABLES
         [SerializeField]

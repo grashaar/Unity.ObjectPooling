@@ -3,7 +3,7 @@
 namespace UnityEngine
 {
     [RequireComponent(typeof(GameObjectPoolerManager), typeof(GameObjectPooler))]
-    public class GameObjectSpawner : MonoBehaviour, IPool<GameObject>
+    public class GameObjectSpawner : MonoBehaviour, IKeyedPool<GameObject>
     {
         [HideInInspector]
         [SerializeField]

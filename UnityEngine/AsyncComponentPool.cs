@@ -1,36 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#if UNITY_OBJECTPOOLING_UNITASK
+using Cysharp.Threading.Tasks;
+#else
+using System.Threading.Tasks;
+#endif
+
 namespace UnityEngine
 {
-    public sealed class GameObjectPool: IPool<GameObject>
+    public class AsyncComponentPool<T> : IAsyncPool<T> where T : Component
     {
-        public ReadList<GameObject> ActiveObjects => this.activeObjects;
+        protected static readonly Type ComponentType = typeof(T);
 
-        private readonly List<GameObject> activeObjects = new List<GameObject>();
-        private readonly Queue<GameObject> pool = new Queue<GameObject>();
-        private readonly IInstantiator<GameObject> instantiator;
+        public ReadList<T> ActiveObjects => this.activeObjects;
 
-        public GameObjectPool(IInstantiator<GameObject> instantiator)
+        private readonly List<T> activeObjects = new List<T>();
+        private readonly Queue<T> pool = new Queue<T>();
+        private readonly AsyncInstantiator<T> instantiator;
+
+        public AsyncComponentPool(AsyncInstantiator<T> instantiator)
         {
             this.instantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
         }
 
-        public void Prepool(int count)
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask PrepoolAsync(int count)
+#else
+        public async Task PrepoolAsync(int count)
+#endif
         {
             for (var i = 0; i < count; i++)
             {
-                var item = this.instantiator.Instantiate();
+                var item = await this.instantiator.InstantiateAsync();
 
                 if (!item)
                     continue;
 
-                item.SetActive(false);
+                item.gameObject.SetActive(false);
                 this.pool.Enqueue(item);
             }
         }
 
-        public void Return(GameObject item)
+        public void Return(T item)
         {
             if (!item)
                 return;
@@ -38,14 +50,14 @@ namespace UnityEngine
             if (this.activeObjects.Contains(item))
                 this.activeObjects.Remove(item);
 
-            if (item.activeSelf)
-                item.SetActive(false);
+            if (item.gameObject.activeSelf)
+                item.gameObject.SetActive(false);
 
             if (!this.pool.Contains(item))
                 this.pool.Enqueue(item);
         }
 
-        public void Return(params GameObject[] items)
+        public void Return(params T[] items)
         {
             if (items == null)
                 return;
@@ -56,7 +68,7 @@ namespace UnityEngine
             }
         }
 
-        public void Return(IEnumerable<GameObject> items)
+        public void Return(IEnumerable<T> items)
         {
             if (items == null)
                 return;
@@ -74,27 +86,31 @@ namespace UnityEngine
                 var item = this.activeObjects[i];
                 this.activeObjects.RemoveAt(i);
 
-                if (item.activeSelf)
-                    item.SetActive(false);
+                if (item.gameObject.activeSelf)
+                    item.gameObject.SetActive(false);
 
                 if (!this.pool.Contains(item))
                     this.pool.Enqueue(item);
             }
         }
 
-        public GameObject Get()
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask<T> GetAsync()
+#else
+        public async Task<T> GetAsync()
+#endif
         {
-            GameObject item;
+            T item;
 
             if (this.pool.Count > 0)
             {
                 item = this.pool.Dequeue();
                 item.transform.position = Vector3.zero;
-                item.SetActive(true);
+                item.gameObject.SetActive(true);
             }
             else
             {
-                item = this.instantiator.Instantiate();
+                item = await this.instantiator.InstantiateAsync();
             }
 
             if (item)

@@ -3,8 +3,7 @@
 namespace UnityEngine
 {
     [RequireComponent(typeof(GameObjectPoolerManager), typeof(GameObjectPooler))]
-    public abstract class ComponentSpawner<T> : MonoBehaviour, IPool<T>
-        where T : Component
+    public abstract class ComponentSpawner<T> : MonoBehaviour, IKeyedPool<T> where T : Component
     {
         [HideInInspector]
         [SerializeField]

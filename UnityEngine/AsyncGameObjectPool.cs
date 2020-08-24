@@ -1,26 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#if UNITY_OBJECTPOOLING_UNITASK
+using Cysharp.Threading.Tasks;
+#else
+using System.Threading.Tasks;
+#endif
+
 namespace UnityEngine
 {
-    public sealed class GameObjectPool: IPool<GameObject>
+    public sealed class AsyncGameObjectPool : IAsyncPool<GameObject>
     {
         public ReadList<GameObject> ActiveObjects => this.activeObjects;
 
         private readonly List<GameObject> activeObjects = new List<GameObject>();
         private readonly Queue<GameObject> pool = new Queue<GameObject>();
-        private readonly IInstantiator<GameObject> instantiator;
+        private readonly AsyncInstantiator<GameObject> asyncInstantiator;
 
-        public GameObjectPool(IInstantiator<GameObject> instantiator)
+        public AsyncGameObjectPool(AsyncInstantiator<GameObject> instantiator)
         {
-            this.instantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
+            this.asyncInstantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
         }
 
-        public void Prepool(int count)
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask PrepoolAsync(int count)
+#else
+        public async Task PrepoolAsync(int count)
+#endif
         {
             for (var i = 0; i < count; i++)
             {
-                var item = this.instantiator.Instantiate();
+                var item = await this.asyncInstantiator.InstantiateAsync();
 
                 if (!item)
                     continue;
@@ -82,7 +92,11 @@ namespace UnityEngine
             }
         }
 
-        public GameObject Get()
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask<GameObject> GetAsync()
+#else
+        public async Task<GameObject> GetAsync()
+#endif
         {
             GameObject item;
 
@@ -94,7 +108,7 @@ namespace UnityEngine
             }
             else
             {
-                item = this.instantiator.Instantiate();
+                item = await this.asyncInstantiator.InstantiateAsync();
             }
 
             if (item)

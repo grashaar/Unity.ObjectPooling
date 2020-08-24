@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine
 {
-    public sealed class GameObjectPooler : MonoBehaviour, IPool<GameObject>
+    public sealed class GameObjectPooler : MonoBehaviour, IKeyedPool<GameObject>
     {
         [SerializeField]
         private Transform poolRoot = null;
