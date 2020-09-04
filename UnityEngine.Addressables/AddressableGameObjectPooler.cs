@@ -32,6 +32,9 @@ namespace UnityEngine.AddressableAssets
             this.prepoolList.AddRange(this.items);
         }
 
+        private Transform GetPoolRoot()
+            => this.poolRoot ? this.poolRoot : this.transform;
+
         public void Register(PoolItem item)
         {
             if (item == null)
@@ -129,9 +132,6 @@ namespace UnityEngine.AddressableAssets
             if (this.prepoolList.Count <= 0)
                 return;
 
-            if (!this.poolRoot)
-                this.poolRoot = this.transform;
-
             for (var i = 0; i < this.prepoolList.Count; i++)
             {
                 if (!ValidateItemAt(i))
@@ -146,8 +146,10 @@ namespace UnityEngine.AddressableAssets
 
                 for (var k = 0; k < item.PrepoolAmount; k++)
                 {
-                    var obj = await Instantiate(item, k);
-                    list.Add(obj);
+                    var obj = await InstantiateAsync(item, k);
+
+                    if (obj)
+                        list.Add(obj);
                 }
 
                 this.listMap.Add(item.Key, list);
@@ -209,7 +211,7 @@ namespace UnityEngine.AddressableAssets
                 return null;
             }
 
-            if (!this.poolRoot)
+            if (!GetPoolRoot())
             {
                 Debug.LogWarning("Pool root is null", this);
                 return null;
@@ -221,19 +223,27 @@ namespace UnityEngine.AddressableAssets
                 this.listMap.Add(key, list);
             }
 
-            var obj = await Instantiate(poolItem, list.Count);
-            list.Add(obj);
+            var obj = await InstantiateAsync(poolItem, list.Count);
+
+            if (obj)
+                list.Add(obj);
 
             return obj;
     }
 
 #if UNITY_OBJECTPOOLING_UNITASK
-        private async UniTask<GameObject> Instantiate(PoolItem item, int number)
+        private async UniTask<GameObject> InstantiateAsync(PoolItem item, int number)
 #else
-        private async Task<GameObject> Instantiate(PoolItem item, int number)
+        private async Task<GameObject> InstantiateAsync(PoolItem item, int number)
 #endif
         {
-            var obj = await AddressableGameObjectInstantiator.InstantiateAsync(item.Object, this.poolRoot, true);
+            if (item.Object == null)
+            {
+                Debug.LogError($"Cannot instantiate null object of key={item.Key}", this);
+                return null;
+            }
+
+            var obj = await AddressableGameObjectInstantiator.InstantiateAsync(item.Object, GetPoolRoot(), true);
             obj.name = $"{item.Key}-{number}";
             obj.SetActive(false);
 
@@ -319,9 +329,25 @@ namespace UnityEngine.AddressableAssets
         [Serializable]
         public class PoolItem
         {
-            public string Key;
+            [SerializeField]
+            private string key = string.Empty;
+
             public AssetReferenceGameObject Object;
-            public int PrepoolAmount;
+
+            [SerializeField, Min(0)]
+            private int prepoolAmount;
+
+            public string Key
+            {
+                get => this.key;
+                set => this.key = value ?? string.Empty;
+            }
+
+            public int PrepoolAmount
+            {
+                get => this.prepoolAmount;
+                set => this.prepoolAmount = Mathf.Max(value, 0);
+            }
         }
 
         [Serializable]

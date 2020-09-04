@@ -24,6 +24,9 @@ namespace UnityEngine
             this.prepoolList.AddRange(this.items);
         }
 
+        private Transform GetPoolRoot()
+            => this.poolRoot ? this.poolRoot : this.transform;
+
         public void Register(PoolItem item)
         {
             if (item == null)
@@ -113,9 +116,6 @@ namespace UnityEngine
             if (this.prepoolList.Count <= 0)
                 return;
 
-            if (!this.poolRoot)
-                this.poolRoot = this.transform;
-
             for (var i = 0; i < this.prepoolList.Count; i++)
             {
                 if (!ValidateItemAt(i))
@@ -131,7 +131,9 @@ namespace UnityEngine
                 for (var k = 0; k < item.PrepoolAmount; k++)
                 {
                     var obj = Instantiate(item, k);
-                    list.Add(obj);
+
+                    if (obj)
+                        list.Add(obj);
                 }
 
                 this.listMap.Add(item.Key, list);
@@ -189,7 +191,7 @@ namespace UnityEngine
                 return null;
             }
 
-            if (!this.poolRoot)
+            if (!GetPoolRoot())
             {
                 Debug.LogWarning("Pool root is null", this);
                 return null;
@@ -202,16 +204,24 @@ namespace UnityEngine
             }
 
             var obj = Instantiate(poolItem, list.Count);
-            list.Add(obj);
+
+            if (obj)
+                list.Add(obj);
 
             return obj;
         }
 
         private GameObject Instantiate(PoolItem item, int number)
         {
+            if (!item.Object)
+            {
+                Debug.LogError($"Cannot instantiate null object of key={item.Key}", this);
+                return null;
+            }
+
             var obj = Instantiate(item.Object);
             obj.name = $"{item.Key}-{number}";
-            obj.transform.SetParent(this.poolRoot, true);
+            obj.transform.SetParent(GetPoolRoot(), true);
             obj.SetActive(false);
 
             return obj;
@@ -284,9 +294,25 @@ namespace UnityEngine
         [Serializable]
         public class PoolItem
         {
-            public string Key;
+            [SerializeField]
+            private string key = string.Empty;
+
             public GameObject Object;
-            public int PrepoolAmount;
+
+            [SerializeField, Min(0)]
+            private int prepoolAmount;
+
+            public string Key
+            {
+                get => this.key;
+                set => this.key = value ?? string.Empty;
+            }
+
+            public int PrepoolAmount
+            {
+                get => this.prepoolAmount;
+                set => this.prepoolAmount = Mathf.Max(value, 0);
+            }
         }
 
         [Serializable]
