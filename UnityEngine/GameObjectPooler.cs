@@ -36,6 +36,11 @@ namespace UnityEngine
 
             if (index < 0)
                 this.items.Add(item);
+
+            index = this.prepoolList.FindIndex(x => string.Equals(x.Key, item.Key));
+
+            if (index < 0)
+                this.prepoolList.Add(item);
         }
 
         public void Deregister(PoolItem item)
