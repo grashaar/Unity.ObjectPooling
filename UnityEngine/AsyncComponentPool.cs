@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 #if UNITY_OBJECTPOOLING_UNITASK
@@ -133,6 +133,21 @@ namespace UnityEngine
                 this.activeObjects.Add(item);
 
             return item;
+        }
+
+        public void DestroyAll()
+        {
+            ReturnAll();
+
+            while (this.pool.Count > 0)
+            {
+                var item = this.pool.Dequeue();
+
+                if (!item || !item.gameObject)
+                    continue;
+
+                Object.Destroy(item.gameObject);
+            }
         }
     }
 }
