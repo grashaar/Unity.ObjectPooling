@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace UnityEngine
 {
-    public class ComponentPool<T> : IPool<T> where T : Component
+    public class ComponentPool<T> : IPool<T>, IReturnInactive where T : Component
     {
         protected static readonly Type ComponentType = typeof(T);
 
@@ -82,6 +82,22 @@ namespace UnityEngine
                 if (!this.pool.Contains(item))
                     this.pool.Enqueue(item);
             }
+        }
+
+        public void ReturnInactive()
+        {
+            var cache = ListPool<T>.Get();
+
+            for (var i = 0; i < this.activeObjects.Count; i++)
+            {
+                var obj = this.activeObjects[i];
+
+                if (obj && obj.gameObject && !obj.gameObject.activeSelf)
+                    cache.Add(obj);
+            }
+
+            Return(cache);
+            ListPool<T>.Return(cache);
         }
 
         public T Get()

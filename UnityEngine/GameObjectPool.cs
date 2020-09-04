@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace UnityEngine
 {
-    public sealed class GameObjectPool: IPool<GameObject>
+    public sealed class GameObjectPool: IPool<GameObject>, IReturnInactive
     {
         public ReadList<GameObject> ActiveObjects => this.activeObjects;
 
@@ -80,6 +80,22 @@ namespace UnityEngine
                 if (!this.pool.Contains(item))
                     this.pool.Enqueue(item);
             }
+        }
+
+        public void ReturnInactive()
+        {
+            var cache = ListPool<GameObject>.Get();
+
+            for (var i = 0; i < this.activeObjects.Count; i++)
+            {
+                var obj = this.activeObjects[i];
+
+                if (obj && !obj.activeSelf)
+                    cache.Add(obj);
+            }
+
+            Return(cache);
+            ListPool<GameObject>.Return(cache);
         }
 
         public GameObject Get()

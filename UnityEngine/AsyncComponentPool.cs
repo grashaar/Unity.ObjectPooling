@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 #if UNITY_OBJECTPOOLING_UNITASK
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace UnityEngine
 {
-    public class AsyncComponentPool<T> : IAsyncPool<T> where T : Component
+    public class AsyncComponentPool<T> : IAsyncPool<T>, IReturnInactive where T : Component
     {
         protected static readonly Type ComponentType = typeof(T);
 
@@ -92,6 +92,22 @@ namespace UnityEngine
                 if (!this.pool.Contains(item))
                     this.pool.Enqueue(item);
             }
+        }
+
+        public void ReturnInactive()
+        {
+            var cache = ListPool<T>.Get();
+
+            for (var i = 0; i < this.activeObjects.Count; i++)
+            {
+                var obj = this.activeObjects[i];
+
+                if (obj && obj.gameObject && !obj.gameObject.activeSelf)
+                    cache.Add(obj);
+            }
+
+            Return(cache);
+            ListPool<T>.Return(cache);
         }
 
 #if UNITY_OBJECTPOOLING_UNITASK
