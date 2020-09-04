@@ -40,9 +40,6 @@ namespace UnityEngine.AddressableAssets
                 var pool = pools[i];
                 var items = pool.Items;
 
-                if (items == null)
-                    continue;
-
                 for (var k = 0; k < items.Count; k++)
                 {
                     if (items[k] == null)
