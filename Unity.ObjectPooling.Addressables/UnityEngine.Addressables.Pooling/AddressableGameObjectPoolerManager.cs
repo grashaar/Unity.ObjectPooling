@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Pooling;
 
 #if UNITY_OBJECTPOOLING_UNITASK
 using Cysharp.Threading.Tasks;
@@ -7,7 +8,7 @@ using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 #endif
 
-namespace UnityEngine.AddressableAssets
+namespace UnityEngine.AddressableAssets.Pooling
 {
     public sealed class AddressableGameObjectPoolerManager : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {

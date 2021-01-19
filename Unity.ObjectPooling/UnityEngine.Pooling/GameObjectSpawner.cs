@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Pooling;
 
-namespace UnityEngine
+namespace UnityEngine.Pooling
 {
     [RequireComponent(typeof(GameObjectPoolerManager), typeof(GameObjectPooler))]
     public class GameObjectSpawner : MonoBehaviour, IKeyedPool<GameObject>

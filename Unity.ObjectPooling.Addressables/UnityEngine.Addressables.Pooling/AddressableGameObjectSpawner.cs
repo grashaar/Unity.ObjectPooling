@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Pooling;
 
 #if UNITY_OBJECTPOOLING_UNITASK
 using Cysharp.Threading.Tasks;
@@ -6,11 +7,10 @@ using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 #endif
 
-namespace UnityEngine.AddressableAssets
+namespace UnityEngine.AddressableAssets.Pooling
 {
     [RequireComponent(typeof(AddressableGameObjectPoolerManager), typeof(AddressableGameObjectPooler))]
-    public abstract class AddressableComponentSpawner<T> : MonoBehaviour, IAsyncKeyedPool<T>
-        where T : Component
+    public class AddressableGameObjectSpawner : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
         [HideInInspector]
         [SerializeField]
@@ -105,27 +105,22 @@ namespace UnityEngine.AddressableAssets
         }
 
 #if UNITY_OBJECTPOOLING_UNITASK
-        public virtual async UniTask<T> GetAsync(string key)
+        public virtual async UniTask<GameObject> GetAsync(string key)
 #else
-        public virtual async Task<T> GetAsync(string key)
+        public virtual async Task<GameObject> GetAsync(string key)
 #endif
         {
             var gameObject = await this.manager.GetAsync(key);
 
-            if (!gameObject)
-                return null;
-
-            var behaviour = gameObject.GetComponent<T>();
-
-            if (behaviour)
+            if (gameObject)
             {
                 gameObject.SetActive(true);
             }
 
-            return behaviour;
+            return gameObject;
         }
 
-        public void Return(T item)
+        public void Return(GameObject item)
         {
             if (!item)
                 return;
@@ -133,7 +128,7 @@ namespace UnityEngine.AddressableAssets
             this.manager.Return(item.gameObject);
         }
 
-        public void Return(params T[] items)
+        public void Return(params GameObject[] items)
         {
             foreach (var item in items)
             {
@@ -141,7 +136,7 @@ namespace UnityEngine.AddressableAssets
             }
         }
 
-        public void Return(IEnumerable<T> items)
+        public void Return(IEnumerable<GameObject> items)
         {
             foreach (var item in items)
             {
@@ -150,7 +145,7 @@ namespace UnityEngine.AddressableAssets
         }
 
         public void ReturnAll()
-            => this.manager.ReturnAll();
+            => this.pooler.ReturnAll();
 
         protected virtual void OnDeinitialize() { }
     }

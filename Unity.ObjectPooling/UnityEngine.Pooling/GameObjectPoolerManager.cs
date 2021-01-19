@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Pooling;
 
-namespace UnityEngine
+namespace UnityEngine.Pooling
 {
     public sealed class GameObjectPoolerManager : MonoBehaviour, IKeyedPool<GameObject>
     {

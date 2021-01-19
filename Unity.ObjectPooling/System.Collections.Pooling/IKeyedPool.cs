@@ -1,4 +1,4 @@
-﻿namespace System.Collections.Generic
+﻿namespace System.Collections.Pooling
 {
     public interface IKeyedGetOnlyPool<T>
     {

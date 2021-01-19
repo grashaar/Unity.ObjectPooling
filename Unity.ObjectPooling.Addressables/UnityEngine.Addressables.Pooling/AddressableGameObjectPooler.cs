@@ -1,10 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Pooling;
 
-namespace UnityEngine
+#if UNITY_OBJECTPOOLING_UNITASK
+using Cysharp.Threading.Tasks;
+#else
+using System.Threading.Tasks;
+#endif
+
+namespace UnityEngine.AddressableAssets.Pooling
 {
-    public sealed class GameObjectPooler : MonoBehaviour, IKeyedPool<GameObject>
+    public sealed class AddressableGameObjectPooler : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
+#if UNITY_OBJECTPOOLING_ADDRESSABLES
+
         [SerializeField]
         private Transform poolRoot = null;
 
@@ -108,15 +117,23 @@ namespace UnityEngine
             }
         }
 
-        public void PrepoolItems()
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask PrepoolItemsAsync()
+#else
+        public async Task PrepoolItemsAsync()
+#endif
         {
             this.prepoolList.Clear();
             this.prepoolList.AddRange(this.items);
 
-            Prepool();
+            await PrepoolAsync();
         }
 
-        public void Prepool()
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask PrepoolAsync()
+#else
+        public async Task PrepoolAsync()
+#endif
         {
             if (this.prepoolList.Count <= 0)
                 return;
@@ -135,7 +152,7 @@ namespace UnityEngine
 
                 for (var k = 0; k < item.PrepoolAmount; k++)
                 {
-                    var obj = Instantiate(item, k);
+                    var obj = await InstantiateAsync(item, k);
 
                     if (obj)
                         list.Add(obj);
@@ -169,7 +186,11 @@ namespace UnityEngine
             this.lists.Clear();
         }
 
-        public GameObject Get(string key)
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask<GameObject> GetAsync(string key)
+#else
+        public async Task<GameObject> GetAsync(string key)
+#endif
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -208,25 +229,28 @@ namespace UnityEngine
                 this.listMap.Add(key, list);
             }
 
-            var obj = Instantiate(poolItem, list.Count);
+            var obj = await InstantiateAsync(poolItem, list.Count);
 
             if (obj)
                 list.Add(obj);
 
             return obj;
-        }
+    }
 
-        private GameObject Instantiate(PoolItem item, int number)
+#if UNITY_OBJECTPOOLING_UNITASK
+        private async UniTask<GameObject> InstantiateAsync(PoolItem item, int number)
+#else
+        private async Task<GameObject> InstantiateAsync(PoolItem item, int number)
+#endif
         {
-            if (!item.Object)
+            if (item.Object == null)
             {
                 Debug.LogError($"Cannot instantiate null object of key={item.Key}", this);
                 return null;
             }
 
-            var obj = Instantiate(item.Object);
+            var obj = await AddressableGameObjectInstantiator.InstantiateAsync(item.Object, GetPoolRoot(), true);
             obj.name = $"{item.Key}-{number}";
-            obj.transform.SetParent(GetPoolRoot(), true);
             obj.SetActive(false);
 
             return obj;
@@ -284,11 +308,23 @@ namespace UnityEngine
 
         public void DestroyAll()
         {
+            foreach (var item in this.items)
+            {
+                if (!this.listMap.TryGetValue(item.Key, out var list))
+                    continue;
+
+                for (var i = list.Count - 1; i >= 0; i--)
+                {
+                    item.Object.ReleaseInstance(list[i]);
+                }
+            }
+
             foreach (var list in this.listMap.Values)
             {
                 for (var i = list.Count - 1; i >= 0; i--)
                 {
-                    Destroy(list[i]);
+                    if (list[i])
+                        Destroy(list[i]);
                 }
             }
 
@@ -302,7 +338,7 @@ namespace UnityEngine
             [SerializeField]
             private string key = string.Empty;
 
-            public GameObject Object;
+            public AssetReferenceGameObject Object;
 
             [SerializeField, Min(0)]
             private int prepoolAmount;
@@ -328,5 +364,7 @@ namespace UnityEngine
 
         [Serializable]
         private class GameObjectList : List<GameObject> { }
+
+#endif
     }
 }

@@ -1,27 +1,22 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Pooling;
 
-#if UNITY_OBJECTPOOLING_UNITASK
-using Cysharp.Threading.Tasks;
-#else
-using System.Threading.Tasks;
-#endif
-
-namespace UnityEngine.AddressableAssets
+namespace UnityEngine.Pooling
 {
-    [RequireComponent(typeof(AddressableGameObjectPoolerManager), typeof(AddressableGameObjectPooler))]
-    public class AddressableGameObjectSpawner : MonoBehaviour, IAsyncKeyedPool<GameObject>
+    [RequireComponent(typeof(GameObjectPoolerManager), typeof(GameObjectPooler))]
+    public abstract class ComponentSpawner<T> : MonoBehaviour, IKeyedPool<T> where T : Component
     {
         [HideInInspector]
         [SerializeField]
-        private AddressableGameObjectPoolerManager manager = null;
+        private GameObjectPoolerManager manager = null;
 
         [HideInInspector]
         [SerializeField]
-        private AddressableGameObjectPooler pooler = null;
+        private GameObjectPooler pooler = null;
 
-        protected AddressableGameObjectPoolerManager Manager => this.manager;
+        protected GameObjectPoolerManager Manager => this.manager;
 
-        protected AddressableGameObjectPooler Pooler => this.pooler;
+        protected GameObjectPooler Pooler => this.pooler;
 
         public ReadList<string> Keys => this.keys;
 
@@ -29,8 +24,8 @@ namespace UnityEngine.AddressableAssets
 
         protected virtual void Awake()
         {
-            this.manager = GetComponent<AddressableGameObjectPoolerManager>();
-            this.pooler = GetComponent<AddressableGameObjectPooler>();
+            this.manager = GetComponent<GameObjectPoolerManager>();
+            this.pooler = GetComponent<GameObjectPooler>();
 
             RefreshKeys();
         }
@@ -46,16 +41,12 @@ namespace UnityEngine.AddressableAssets
             }
         }
 
-#if UNITY_OBJECTPOOLING_UNITASK
-        public async UniTask InitializeAsync(bool silent = false)
-#else
-        public async Task InitializeAsync(bool silent = false)
-#endif
+        public void Initialize(bool silent = false)
         {
             RefreshKeys();
 
             this.manager.Initialize(silent);
-            await this.manager.PrepoolAsync();
+            this.manager.Prepool();
         }
 
         public void Deinitialize()
@@ -68,7 +59,7 @@ namespace UnityEngine.AddressableAssets
         public bool ContainsKey(string key)
             => this.keys.Contains(key);
 
-        public void RegisterPoolItem(string key, AssetReferenceGameObject objectToPool, int prepoolAmount)
+        public void RegisterPoolItem(string key, GameObject objectToPool, int prepoolAmount)
         {
             if (string.IsNullOrEmpty(key))
                 return;
@@ -76,11 +67,11 @@ namespace UnityEngine.AddressableAssets
             if (this.keys.Contains(key))
                 return;
 
-            if (objectToPool == null)
+            if (!objectToPool)
                 return;
 
             this.keys.Add(key);
-            this.pooler.Register(new AddressableGameObjectPooler.PoolItem {
+            this.pooler.Register(new GameObjectPooler.PoolItem {
                 Key = key,
                 Object = objectToPool,
                 PrepoolAmount = prepoolAmount
@@ -103,23 +94,24 @@ namespace UnityEngine.AddressableAssets
             this.pooler.DeregisterAll();
         }
 
-#if UNITY_OBJECTPOOLING_UNITASK
-        public virtual async UniTask<GameObject> GetAsync(string key)
-#else
-        public virtual async Task<GameObject> GetAsync(string key)
-#endif
+        public virtual T Get(string key)
         {
-            var gameObject = await this.manager.GetAsync(key);
+            var gameObject = this.manager.Get(key);
 
-            if (gameObject)
+            if (!gameObject)
+                return null;
+
+            var behaviour = gameObject.GetComponent<T>();
+
+            if (behaviour)
             {
                 gameObject.SetActive(true);
             }
 
-            return gameObject;
+            return behaviour;
         }
 
-        public void Return(GameObject item)
+        public void Return(T item)
         {
             if (!item)
                 return;
@@ -127,7 +119,7 @@ namespace UnityEngine.AddressableAssets
             this.manager.Return(item.gameObject);
         }
 
-        public void Return(params GameObject[] items)
+        public void Return(params T[] items)
         {
             foreach (var item in items)
             {
@@ -135,7 +127,7 @@ namespace UnityEngine.AddressableAssets
             }
         }
 
-        public void Return(IEnumerable<GameObject> items)
+        public void Return(IEnumerable<T> items)
         {
             foreach (var item in items)
             {
@@ -144,7 +136,7 @@ namespace UnityEngine.AddressableAssets
         }
 
         public void ReturnAll()
-            => this.pooler.ReturnAll();
+            => this.manager.ReturnAll();
 
         protected virtual void OnDeinitialize() { }
     }

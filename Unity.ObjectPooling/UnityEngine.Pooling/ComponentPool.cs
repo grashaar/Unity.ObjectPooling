@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Pooling;
 
-namespace UnityEngine
+namespace UnityEngine.Pooling
 {
-    public sealed class GameObjectPool: IPool<GameObject>, IReturnInactive
+    public class ComponentPool<T> : IPool<T>, IReturnInactive where T : Component
     {
-        public ReadList<GameObject> ActiveObjects => this.activeObjects;
+        protected static readonly Type ComponentType = typeof(T);
 
-        private readonly List<GameObject> activeObjects = new List<GameObject>();
-        private readonly Queue<GameObject> pool = new Queue<GameObject>();
-        private readonly IInstantiator<GameObject> instantiator;
+        public ReadList<T> ActiveObjects => this.activeObjects;
 
-        public GameObjectPool(IInstantiator<GameObject> instantiator)
+        private readonly List<T> activeObjects = new List<T>();
+        private readonly Queue<T> pool = new Queue<T>();
+        private readonly IInstantiator<T> instantiator;
+
+        public ComponentPool(IInstantiator<T> instantiator)
         {
             this.instantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
         }
@@ -25,12 +28,12 @@ namespace UnityEngine
                 if (!item)
                     continue;
 
-                item.SetActive(false);
+                item.gameObject.SetActive(false);
                 this.pool.Enqueue(item);
             }
         }
 
-        public void Return(GameObject item)
+        public void Return(T item)
         {
             if (!item)
                 return;
@@ -38,14 +41,14 @@ namespace UnityEngine
             if (this.activeObjects.Contains(item))
                 this.activeObjects.Remove(item);
 
-            if (item.activeSelf)
-                item.SetActive(false);
+            if (item.gameObject.activeSelf)
+                item.gameObject.SetActive(false);
 
             if (!this.pool.Contains(item))
                 this.pool.Enqueue(item);
         }
 
-        public void Return(params GameObject[] items)
+        public void Return(params T[] items)
         {
             if (items == null)
                 return;
@@ -56,7 +59,7 @@ namespace UnityEngine
             }
         }
 
-        public void Return(IEnumerable<GameObject> items)
+        public void Return(IEnumerable<T> items)
         {
             if (items == null)
                 return;
@@ -74,8 +77,8 @@ namespace UnityEngine
                 var item = this.activeObjects[i];
                 this.activeObjects.RemoveAt(i);
 
-                if (item.activeSelf)
-                    item.SetActive(false);
+                if (item.gameObject.activeSelf)
+                    item.gameObject.SetActive(false);
 
                 if (!this.pool.Contains(item))
                     this.pool.Enqueue(item);
@@ -84,29 +87,29 @@ namespace UnityEngine
 
         public void ReturnInactive()
         {
-            var cache = ListPool<GameObject>.Get();
+            var cache = ListPool<T>.Get();
 
             for (var i = 0; i < this.activeObjects.Count; i++)
             {
                 var obj = this.activeObjects[i];
 
-                if (obj && !obj.activeSelf)
+                if (obj && obj.gameObject && !obj.gameObject.activeSelf)
                     cache.Add(obj);
             }
 
             Return(cache);
-            ListPool<GameObject>.Return(cache);
+            ListPool<T>.Return(cache);
         }
 
-        public GameObject Get()
+        public T Get()
         {
-            GameObject item;
+            T item;
 
             if (this.pool.Count > 0)
             {
                 item = this.pool.Dequeue();
                 item.transform.position = Vector3.zero;
-                item.SetActive(true);
+                item.gameObject.SetActive(true);
             }
             else
             {
@@ -127,10 +130,10 @@ namespace UnityEngine
             {
                 var item = this.pool.Dequeue();
 
-                if (!item)
+                if (!item || !item.gameObject)
                     continue;
 
-                Object.Destroy(item);
+                Object.Destroy(item.gameObject);
             }
         }
     }

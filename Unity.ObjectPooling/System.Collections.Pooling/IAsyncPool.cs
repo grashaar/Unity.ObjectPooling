@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 #endif
 
-namespace System.Collections.Generic
+namespace System.Collections.Pooling
 {
     public interface IAsyncGetOnlyPool<T>
     {
