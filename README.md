@@ -30,30 +30,30 @@
 ## API
 
 ### System.Collections.Pooling
-    - [IKeyedPool\<T>](./Unity.ObjectPooling/System.Collections.Pooling/IKeyedPool.cs)
-    - [IAsyncPool\<T>](./Unity.ObjectPooling/System.Collections.Pooling/IAsyncPool.cs)
-    - [IAsyncKeyedPool\<T>](./Unity.ObjectPooling/System.Collections.Pooling/IAsyncKeyedPool.cs)
+- [IKeyedPool\<T>](./Unity.ObjectPooling/System.Collections.Pooling/IKeyedPool.cs)
+- [IAsyncPool\<T>](./Unity.ObjectPooling/System.Collections.Pooling/IAsyncPool.cs)
+- [IAsyncKeyedPool\<T>](./Unity.ObjectPooling/System.Collections.Pooling/IAsyncKeyedPool.cs)
 
 ### UnityEngine
-    - [IInstantiator\<T>](./Unity.ObjectPooling/UnityEngine/IInstantiator.cs)
-    - [AsyncInstantiator](./Unity.ObjectPooling/UnityEngine/AsyncInstantiator.cs)
-    - [IReturnInactive](./Unity.ObjectPooling/UnityEngine/IReturnInactive.cs)
+- [IInstantiator\<T>](./Unity.ObjectPooling/UnityEngine/IInstantiator.cs)
+- [AsyncInstantiator](./Unity.ObjectPooling/UnityEngine/AsyncInstantiator.cs)
+- [IReturnInactive](./Unity.ObjectPooling/UnityEngine/IReturnInactive.cs)
 
 ### UnityEngine.Pooling
-    - [ComponentPool\<T>](./Unity.ObjectPooling/UnityEngine.Pooling/ComponentPool.cs)
-    - [AsyncComponentPool\<T>](./Unity.ObjectPooling/UnityEngine.Pooling/AsyncComponentPool.cs)
-    - [GameObjectPool](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectPool.cs)
-    - [AsyncGameObjectPool](./Unity.ObjectPooling/UnityEngine.Pooling/AsyncGameObjectPool.cs)
-    - [GameObjectPooler](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectPooler.cs)
-    - [GameObjectPoolerManager](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectPoolerManager.cs)
-    - [ComponentSpawner](./Unity.ObjectPooling/UnityEngine.Pooling/ComponentSpawner.cs)
-    - [GameObjectSpawner](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectSpawner.cs)
+- [ComponentPool\<T>](./Unity.ObjectPooling/UnityEngine.Pooling/ComponentPool.cs)
+- [AsyncComponentPool\<T>](./Unity.ObjectPooling/UnityEngine.Pooling/AsyncComponentPool.cs)
+- [GameObjectPool](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectPool.cs)
+- [AsyncGameObjectPool](./Unity.ObjectPooling/UnityEngine.Pooling/AsyncGameObjectPool.cs)
+- [GameObjectPooler](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectPooler.cs)
+- [GameObjectPoolerManager](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectPoolerManager.cs)
+- [ComponentSpawner](./Unity.ObjectPooling/UnityEngine.Pooling/ComponentSpawner.cs)
+- [GameObjectSpawner](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectSpawner.cs)
 
 ### UnityEngine.AddressableAssets
-    - [AddressableGameObjectInstantiator](./Unity.ObjectPooling/UnityEngine.Addressables/AddressableGameObjectInstantiator.cs)
+- [AddressableGameObjectInstantiator](./Unity.ObjectPooling/UnityEngine.Addressables/AddressableGameObjectInstantiator.cs)
 
 ### UnityEngine.AddressableAssets.Pooling
-    - [AddressableComponentSpawner](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableComponentSpawner.cs)
-    - [AddressableGameObjectPooler](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectPooler.cs)
-    - [AddressableGameObjectPoolerManager](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectPoolerManager.cs)
-    - [AddressableGameObjectSpawner](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectSpawner.cs)
+- [AddressableComponentSpawner](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableComponentSpawner.cs)
+- [AddressableGameObjectPooler](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectPooler.cs)
+- [AddressableGameObjectPoolerManager](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectPoolerManager.cs)
+- [AddressableGameObjectSpawner](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectSpawner.cs)
