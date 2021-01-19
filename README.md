@@ -50,10 +50,10 @@
 - [GameObjectSpawner](./Unity.ObjectPooling/UnityEngine.Pooling/GameObjectSpawner.cs)
 
 ### UnityEngine.AddressableAssets
-- [AddressableGameObjectInstantiator](./Unity.ObjectPooling/UnityEngine.Addressables/AddressableGameObjectInstantiator.cs)
+- [AddressableGameObjectInstantiator](./Unity.ObjectPooling.Addressables/UnityEngine.Addressables/AddressableGameObjectInstantiator.cs)
 
 ### UnityEngine.AddressableAssets.Pooling
-- [AddressableComponentSpawner](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableComponentSpawner.cs)
-- [AddressableGameObjectPooler](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectPooler.cs)
-- [AddressableGameObjectPoolerManager](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectPoolerManager.cs)
-- [AddressableGameObjectSpawner](./Unity.ObjectPooling/UnityEngine.Addressables.Pooling/AddressableGameObjectSpawner.cs)
+- [AddressableComponentSpawner](./Unity.ObjectPooling.Addressables/UnityEngine.Addressables.Pooling/AddressableComponentSpawner.cs)
+- [AddressableGameObjectPooler](./Unity.ObjectPooling.Addressables/UnityEngine.Addressables.Pooling/AddressableGameObjectPooler.cs)
+- [AddressableGameObjectPoolerManager](./Unity.ObjectPooling.Addressables/UnityEngine.Addressables.Pooling/AddressableGameObjectPoolerManager.cs)
+- [AddressableGameObjectSpawner](./Unity.ObjectPooling.Addressables/UnityEngine.Addressables.Pooling/AddressableGameObjectSpawner.cs)
