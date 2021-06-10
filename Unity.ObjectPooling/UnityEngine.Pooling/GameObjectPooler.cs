@@ -9,9 +9,18 @@ namespace UnityEngine.Pooling
         [SerializeField]
         private Transform poolRoot = null;
 
+        [SerializeField, Tooltip("Disable warning logs")]
+        private bool silent = false;
+
         [Space]
         [SerializeField]
         private List<PoolItem> items = new List<PoolItem>();
+
+        public bool Silent
+        {
+            get => this.silent;
+            set => this.silent = value;
+        }
 
         public ReadList<PoolItem> Items => this.items;
 
@@ -95,13 +104,17 @@ namespace UnityEngine.Pooling
 
                 if (string.IsNullOrEmpty(item.Key))
                 {
-                    Debug.LogWarning($"Pool key at index={i} is empty", this);
+                    if (!this.silent)
+                        Debug.LogWarning($"Pool key at index={i} is empty", this);
+
                     continue;
                 }
 
                 if (this.itemMap.ContainsKey(item.Key))
                 {
-                    Debug.LogWarning($"Pool key={item.Key} has already been existing", this);
+                    if (!this.silent)
+                        Debug.LogWarning($"Pool key={item.Key} has already been existing", this);
+
                     continue;
                 }
 
@@ -174,7 +187,9 @@ namespace UnityEngine.Pooling
         {
             if (string.IsNullOrEmpty(key))
             {
-                Debug.LogWarning("Key is empty", this);
+                if (!this.silent)
+                    Debug.LogWarning("Key is empty", this);
+
                 return null;
             }
 
@@ -193,13 +208,17 @@ namespace UnityEngine.Pooling
 
             if (!this.itemMap.TryGetValue(key, out var poolItem))
             {
-                Debug.LogWarning($"Key={key} is not defined", this);
+                if (!this.silent)
+                    Debug.LogWarning($"Key={key} is not defined", this);
+
                 return null;
             }
 
             if (!GetPoolRoot())
             {
-                Debug.LogWarning("Pool root is null", this);
+                if (!this.silent)
+                    Debug.LogWarning("Pool root is null", this);
+
                 return null;
             }
 
@@ -242,13 +261,17 @@ namespace UnityEngine.Pooling
 
             if (string.IsNullOrEmpty(item.Key))
             {
-                Debug.LogWarning($"Pool key at index={i} is empty", this);
+                if (!this.silent)
+                    Debug.LogWarning($"Pool key at index={i} is empty", this);
+
                 return false;
             }
 
             if (this.listMap.ContainsKey(item.Key))
             {
-                Debug.LogWarning($"Pool key={item.Key} has already been existing", this);
+                if (!this.silent)
+                    Debug.LogWarning($"Pool key={item.Key} has already been existing", this);
+
                 return false;
             }
 

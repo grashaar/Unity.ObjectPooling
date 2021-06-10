@@ -12,6 +12,9 @@ namespace UnityEngine.Pooling
         [SerializeField]
         private bool initializeOnAwake = true;
 
+        [SerializeField]
+        private bool silent = false;
+
         private readonly PoolerMap poolerMap = new PoolerMap();
 
         private void Awake()
@@ -22,6 +25,8 @@ namespace UnityEngine.Pooling
 
         public void Initialize(bool silent = false)
         {
+            this.silent = silent;
+
             if (!this.poolersRoot)
             {
                 this.poolersRoot = this.gameObject;
@@ -32,6 +37,8 @@ namespace UnityEngine.Pooling
             for (var i = 0; i < pools.Length; i++)
             {
                 var pool = pools[i];
+                pool.Silent = this.silent;
+
                 var items = pool.Items;
 
                 for (var k = 0; k < items.Count; k++)
@@ -43,7 +50,7 @@ namespace UnityEngine.Pooling
 
                     if (string.IsNullOrEmpty(item.Key))
                     {
-                        if (!silent)
+                        if (!this.silent)
                             Debug.LogWarning($"Pool key at index={k} is empty", pool);
 
                         continue;
@@ -51,7 +58,7 @@ namespace UnityEngine.Pooling
 
                     if (this.poolerMap.ContainsKey(item.Key))
                     {
-                        if (!silent)
+                        if (!this.silent)
                             Debug.LogWarning($"Pool key={item.Key} has already been existing", pool);
 
                         continue;
@@ -89,22 +96,24 @@ namespace UnityEngine.Pooling
         {
             if (string.IsNullOrEmpty(key))
             {
-                Debug.LogWarning("Key is empty");
+                if (!this.silent)
+                    Debug.LogWarning("Key is empty");
+
                 return null;
             }
 
             if (!this.poolerMap.TryGetValue(key, out var pooler))
             {
-                Debug.LogWarning($"Key={key} does not exist");
+                if (!this.silent)
+                    Debug.LogWarning($"Key={key} does not exist");
+
                 return null;
             }
 
             var obj = pooler.Get(key);
 
-            if (!obj)
-            {
+            if (!obj && !this.silent)
                 Debug.LogWarning($"Cannot spawn {key}");
-            }
 
             return obj;
         }
