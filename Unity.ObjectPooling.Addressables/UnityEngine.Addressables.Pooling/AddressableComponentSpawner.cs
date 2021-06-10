@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_OBJECTPOOLING_ADDRESSABLES
+
+using System.Collections.Generic;
 using System.Collections.Pooling;
 
 #if UNITY_OBJECTPOOLING_UNITASK
@@ -156,3 +158,5 @@ namespace UnityEngine.AddressableAssets.Pooling
         protected virtual void OnDeinitialize() { }
     }
 }
+
+#endif

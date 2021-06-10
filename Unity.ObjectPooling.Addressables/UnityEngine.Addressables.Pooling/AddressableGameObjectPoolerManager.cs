@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if UNITY_OBJECTPOOLING_ADDRESSABLES
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Pooling;
 
@@ -12,7 +14,6 @@ namespace UnityEngine.AddressableAssets.Pooling
 {
     public sealed class AddressableGameObjectPoolerManager : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
-#if UNITY_OBJECTPOOLING_ADDRESSABLES
         [SerializeField]
         private GameObject poolersRoot = null;
 
@@ -170,6 +171,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 
         [Serializable]
         private class PoolerMap : Dictionary<string, AddressableGameObjectPooler> { }
-#endif
     }
 }
+
+#endif
