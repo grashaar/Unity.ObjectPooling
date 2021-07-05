@@ -26,7 +26,6 @@ namespace UnityEngine.Pooling
 
         private readonly ItemMap itemMap = new ItemMap();
         private readonly GameObjectListMap listMap = new GameObjectListMap();
-        private readonly List<GameObjectList> lists = new List<GameObjectList>();
         private readonly List<PoolItem> prepoolList = new List<PoolItem>();
 
         private void Awake()
@@ -35,7 +34,12 @@ namespace UnityEngine.Pooling
         }
 
         private Transform GetPoolRoot()
-            => this.poolRoot ? this.poolRoot : this.transform;
+        {
+            if (!this.poolRoot)
+                this.poolRoot = this.transform;
+
+            return this.poolRoot;
+        }
 
         public void Register(PoolItem item)
         {
@@ -135,6 +139,8 @@ namespace UnityEngine.Pooling
             if (this.prepoolList.Count <= 0)
                 return;
 
+            var pool = Pool.Provider.Pool<GameObjectList>();
+
             for (var i = 0; i < this.prepoolList.Count; i++)
             {
                 if (!ValidateItemAt(i))
@@ -145,7 +151,7 @@ namespace UnityEngine.Pooling
                 if (!this.itemMap.ContainsKey(item.Key))
                     this.itemMap.Add(item.Key, item);
 
-                var list = new GameObjectList();
+                var list =  pool.Get();
 
                 for (var k = 0; k < item.PrepoolAmount; k++)
                 {
@@ -163,15 +169,15 @@ namespace UnityEngine.Pooling
 
         public void ReturnAll()
         {
-            this.lists.Clear();
-            this.lists.AddRange(this.listMap.Values);
+            var keys = Pool.Provider.List<string>();
+            keys.AddRange(this.listMap.Keys);
 
-            for (var i = 0; i < this.lists.Count; i++)
+            for (var i = 0; i < keys.Count; i++)
             {
-                if (this.lists[i] == null)
-                    continue;
+                var key = keys[i];
 
-                var list = this.lists[i];
+                if (!this.listMap.TryGetValue(key, out var list))
+                    continue;
 
                 for (var k = 0; k < list.Count; k++)
                 {
@@ -180,7 +186,7 @@ namespace UnityEngine.Pooling
                 }
             }
 
-            this.lists.Clear();
+            Pool.Provider.Return(keys);
         }
 
         public GameObject Get(string key)
@@ -308,16 +314,27 @@ namespace UnityEngine.Pooling
 
         public void DestroyAll()
         {
-            foreach (var list in this.listMap.Values)
+            var pool = Pool.Provider.Pool<GameObjectList>();
+            var keys = Pool.Provider.List<string>();
+            keys.AddRange(this.listMap.Keys);
+
+            for (var i = 0; i < keys.Count; i++)
             {
-                for (var i = list.Count - 1; i >= 0; i--)
+                var key = keys[i];
+
+                if (!this.listMap.TryGetValue(key, out var list))
+                    continue;
+
+                for (var j = list.Count - 1; j >= 0; j--)
                 {
-                    Destroy(list[i]);
+                    Destroy(list[j]);
                 }
+
+                this.listMap.Remove(key);
+                pool.Return(list);
             }
 
-            this.listMap.Clear();
-            this.lists.Clear();
+            Pool.Provider.Return(keys);
         }
 
         [Serializable]
