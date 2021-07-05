@@ -95,6 +95,85 @@ namespace UnityEngine.Pooling
             this.prepoolList.Clear();
         }
 
+        public void Deregister<TReleaseHandler>(PoolItem item, TReleaseHandler releaseHandler)
+            where TReleaseHandler : IKeyedReleaseHandler
+        {
+            if (item == null)
+                return;
+
+            var index = -1;
+
+            for (var i = 0; i < this.items.Count; i++)
+            {
+                var x = this.items[i];
+
+                if (x == null)
+                    continue;
+
+                if (!string.Equals(item.Key, x.Key))
+                    continue;
+
+                index = i;
+                releaseHandler?.Release(x.Key, x.Object);
+            }
+
+            if (index >= 0)
+                this.items.RemoveAt(index);
+
+            index = this.prepoolList.FindIndex(x => x != null && string.Equals(x.Key, item.Key));
+
+            if (index >= 0)
+                this.prepoolList.RemoveAt(index);
+        }
+
+        public void Deregister<TReleaseHandler>(string key, TReleaseHandler releaseHandler)
+            where TReleaseHandler : IKeyedReleaseHandler
+        {
+            if (string.IsNullOrEmpty(key))
+                return;
+
+            var index = -1;
+
+            for (var i = 0; i < this.items.Count; i++)
+            {
+                var x = this.items[i];
+
+                if (x == null)
+                    continue;
+
+                if (!string.Equals(key, x.Key))
+                    continue;
+
+                index = i;
+                releaseHandler?.Release(key, x.Object);
+            }
+
+            if (index >= 0)
+                this.items.RemoveAt(index);
+
+            index = this.prepoolList.FindIndex(x => x != null && string.Equals(x.Key, key));
+
+            if (index >= 0)
+                this.prepoolList.RemoveAt(index);
+        }
+
+        public void DeregisterAll<TReleaseHandler>(TReleaseHandler releaseHandler)
+            where TReleaseHandler : IKeyedReleaseHandler
+        {
+            for (var i = 0; i < this.items.Count; i++)
+            {
+                var item = this.items[i];
+
+                if (item == null)
+                    continue;
+
+                releaseHandler?.Release(item.Key, item.Object);
+            }
+
+            this.items.Clear();
+            this.prepoolList.Clear();
+        }
+
         public void PrepareItemMap()
         {
             this.itemMap.Clear();

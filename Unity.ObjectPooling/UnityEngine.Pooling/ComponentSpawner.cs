@@ -88,6 +88,24 @@ namespace UnityEngine.Pooling
             this.pooler.DeregisterAll();
         }
 
+        public void DeregisterPoolItem<TReleaseHandler>(string key, TReleaseHandler releaseHandler)
+            where TReleaseHandler : IKeyedReleaseHandler
+        {
+            var index = this.keys.FindIndex(x => string.Equals(x, key));
+
+            if (index >= 0)
+                this.keys.RemoveAt(index);
+
+            this.pooler.Deregister(key, releaseHandler);
+        }
+
+        public void DeregisterAllPoolItems<TReleaseHandler>(TReleaseHandler releaseHandler)
+            where TReleaseHandler : IKeyedReleaseHandler
+        {
+            this.keys.Clear();
+            this.pooler.DeregisterAll(releaseHandler);
+        }
+
         public virtual T Get(string key)
         {
             var gameObject = this.pooler.Get(key);
