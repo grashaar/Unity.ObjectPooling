@@ -37,16 +37,20 @@ namespace UnityEngine.Pooling
             for (var i = 0; i < poolers.Length; i++)
             {
                 var pooler = poolers[i];
+
+                if (!pooler)
+                    continue;
+
                 pooler.Silent = this.silent;
 
                 var items = pooler.Items;
 
                 for (var k = 0; k < items.Count; k++)
                 {
-                    if (items[k] == null)
-                        continue;
-
                     var item = items[k];
+
+                    if (item == null)
+                        continue;
 
                     if (string.IsNullOrEmpty(item.Key))
                     {
@@ -153,8 +157,6 @@ namespace UnityEngine.Pooling
             {
                 pooler.DestroyAll();
             }
-
-            this.poolerMap.Clear();
         }
 
         [Serializable]
