@@ -2,6 +2,12 @@
 
 ## Changelog
 
+### 1.5.0
+- Support synchronous pooling for classes under `UnityEngine.AddressableAssets.Pooling` namespace (available when Addressables 1.17 or higher is installed)
+- Spawners will no longer require a pooler manager to work
+- Support custom instance destroying for some pool class, implement via IDestroyHandler interface
+- Various improvements and corrections
+
 ### 1.4.0
 - Upgrade `Unity Supplements` package to version `2.5.3`
 - Change the namespace of pooling classes
