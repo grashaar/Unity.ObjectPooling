@@ -9,7 +9,6 @@
         "Unity.Supplements",
         "Unity.AddressablesManager"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -24,6 +23,11 @@
             "define": "UNITY_OBJECTPOOLING_ADDRESSABLES"
         },
         {
+            "name": "com.unity.addressables",
+            "expression": "1.17",
+            "define": "UNITY_OBJECTPOOLING_ADDRESSABLES_1_17"
+        },
+        {
             "name": "com.cysharp.unitask",
             "expression": "",
             "define": "UNITY_OBJECTPOOLING_UNITASK"
@@ -33,5 +37,6 @@
             "expression": "",
             "define": "UNITY_OBJECTPOOLING_ADDRESSABLES_MANAGER"
         }
-    ]
+    ],
+    "noEngineReferences": false
 }

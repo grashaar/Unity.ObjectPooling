@@ -1,4 +1,4 @@
-﻿#if UNITY_OBJECTPOOLING_ADDRESSABLES
+#if UNITY_OBJECTPOOLING_ADDRESSABLES
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.AddressableAssets.Pooling
 {
-    public sealed class AddressableGameObjectPooler : MonoBehaviour, IAsyncKeyedPool<GameObject>
+    public sealed partial class AddressableGameObjectPooler : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
         [SerializeField]
         private Transform poolRoot = null;
@@ -387,7 +387,6 @@ namespace UnityEngine.AddressableAssets.Pooling
 
         [Serializable]
         private class GameObjectList : List<GameObject> { }
-
     }
 }
 

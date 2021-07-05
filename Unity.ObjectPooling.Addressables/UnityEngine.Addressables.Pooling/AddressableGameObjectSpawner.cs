@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace UnityEngine.AddressableAssets.Pooling
 {
     [RequireComponent(typeof(AddressableGameObjectPooler))]
-    public class AddressableGameObjectSpawner : MonoBehaviour, IAsyncKeyedPool<GameObject>
+    public partial class AddressableGameObjectSpawner : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
         [HideInInspector]
         [SerializeField]

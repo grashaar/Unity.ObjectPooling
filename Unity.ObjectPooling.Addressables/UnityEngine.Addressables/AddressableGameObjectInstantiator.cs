@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.AddressableAssets
 {
-    public static class AddressableGameObjectInstantiator
+    public static partial class AddressableGameObjectInstantiator
     {
 #if UNITY_OBJECTPOOLING_UNITASK
 
@@ -37,6 +37,16 @@ namespace UnityEngine.AddressableAssets
         }
 
 #endif
+
+        public static void ReleaseInstance(AssetReferenceGameObject reference, GameObject obj)
+        {
+#if UNITY_OBJECTPOOLING_ADDRESSABLES_MANAGER
+            AddressablesManager.ReleaseInstance(reference, obj);
+#else
+            if (reference != null && obj)
+                reference.ReleaseInstance(obj);
+#endif
+        }
     }
 }
 

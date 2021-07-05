@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.AddressableAssets.Pooling
 {
-    public sealed class AddressableGameObjectPoolerManager : MonoBehaviour, IAsyncKeyedPool<GameObject>
+    public sealed partial class AddressableGameObjectPoolerManager : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
         [SerializeField]
         private GameObject poolersRoot = null;
@@ -109,11 +109,14 @@ namespace UnityEngine.AddressableAssets.Pooling
             }
         }
 
-        [Obsolete("This method has been deprecated. Use GetAsync instead.")]
+
+#if !UNITY_OBJECTPOOLING_ADDRESSABLES_1_17
+        [Obsolete("Install Addressables 1.17 or higher, or use GetAsync instead.")]
         public GameObject Get(string key)
         {
             throw new NotImplementedException();
         }
+#endif
 
 #if UNITY_OBJECTPOOLING_UNITASK
         public async UniTask<GameObject> GetAsync(string key)
