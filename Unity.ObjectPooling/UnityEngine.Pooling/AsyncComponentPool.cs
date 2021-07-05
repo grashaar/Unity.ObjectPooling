@@ -150,5 +150,20 @@ namespace UnityEngine.Pooling
                 Object.Destroy(item.gameObject);
             }
         }
+
+        public void DestroyAll<THandler>(THandler handler) where THandler : IDestroyHandler
+        {
+            ReturnAll();
+
+            while (this.pool.Count > 0)
+            {
+                var item = this.pool.Dequeue();
+
+                if (!item || !item.gameObject)
+                    continue;
+
+                handler.Destroy(item.gameObject);
+            }
+        }
     }
 }

@@ -87,7 +87,7 @@ namespace UnityEngine.Pooling
 
         public void ReturnInactive()
         {
-            var cache = ListPool<T>.Get();
+            var cache = Pool.Provider.List<T>();
 
             for (var i = 0; i < this.activeObjects.Count; i++)
             {
@@ -98,7 +98,7 @@ namespace UnityEngine.Pooling
             }
 
             Return(cache);
-            ListPool<T>.Return(cache);
+            Pool.Provider.Return(cache);
         }
 
         public T Get()
@@ -134,6 +134,21 @@ namespace UnityEngine.Pooling
                     continue;
 
                 Object.Destroy(item.gameObject);
+            }
+        }
+
+        public void DestroyAll<THandler>(THandler handler) where THandler : IDestroyHandler
+        {
+            ReturnAll();
+
+            while (this.pool.Count > 0)
+            {
+                var item = this.pool.Dequeue();
+
+                if (!item || !item.gameObject)
+                    continue;
+
+                handler.Destroy(item.gameObject);
             }
         }
     }
