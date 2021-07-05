@@ -1,4 +1,4 @@
-#if UNITY_OBJECTPOOLING_ADDRESSABLES
+﻿#if UNITY_OBJECTPOOLING_ADDRESSABLES
 
 using System;
 using System.Collections.Generic;
@@ -346,8 +346,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 
                 for (var i = list.Count - 1; i >= 0; i--)
                 {
-                    if (item.Object != null)
-                        item.Object.ReleaseInstance(list[i]);
+                    AddressableGameObjectInstantiator.ReleaseInstance(item.Object, list[i]);
                 }
 
                 this.listMap.Remove(item.Key);
