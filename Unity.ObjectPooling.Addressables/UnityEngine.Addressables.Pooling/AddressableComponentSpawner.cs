@@ -11,19 +11,13 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.AddressableAssets.Pooling
 {
-    [RequireComponent(typeof(AddressableGameObjectPoolerManager), typeof(AddressableGameObjectPooler))]
+    [RequireComponent(typeof(AddressableGameObjectPooler))]
     public abstract class AddressableComponentSpawner<T> : MonoBehaviour, IAsyncKeyedPool<T>
         where T : Component
     {
         [HideInInspector]
         [SerializeField]
-        private AddressableGameObjectPoolerManager manager = null;
-
-        [HideInInspector]
-        [SerializeField]
         private AddressableGameObjectPooler pooler = null;
-
-        protected AddressableGameObjectPoolerManager Manager => this.manager;
 
         protected AddressableGameObjectPooler Pooler => this.pooler;
 
@@ -33,7 +27,6 @@ namespace UnityEngine.AddressableAssets.Pooling
 
         protected virtual void Awake()
         {
-            this.manager = GetComponent<AddressableGameObjectPoolerManager>();
             this.pooler = GetComponent<AddressableGameObjectPooler>();
 
             RefreshKeys();
@@ -58,13 +51,14 @@ namespace UnityEngine.AddressableAssets.Pooling
         {
             RefreshKeys();
 
-            this.manager.Initialize(silent);
-            await this.manager.PrepoolAsync();
+            this.pooler.Silent = silent;
+            this.pooler.PrepareItemMap();
+            await this.pooler.PrepoolAsync();
         }
 
         public void Deinitialize()
         {
-            this.manager.DestroyAll();
+            this.pooler.DestroyAll();
 
             OnDeinitialize();
         }
@@ -113,7 +107,7 @@ namespace UnityEngine.AddressableAssets.Pooling
         public virtual async Task<T> GetAsync(string key)
 #endif
         {
-            var gameObject = await this.manager.GetAsync(key);
+            var gameObject = await this.pooler.GetAsync(key);
 
             if (!gameObject)
                 return null;
@@ -133,7 +127,7 @@ namespace UnityEngine.AddressableAssets.Pooling
             if (!item)
                 return;
 
-            this.manager.Return(item.gameObject);
+            this.pooler.Return(item.gameObject);
         }
 
         public void Return(params T[] items)
@@ -153,7 +147,7 @@ namespace UnityEngine.AddressableAssets.Pooling
         }
 
         public void ReturnAll()
-            => this.manager.ReturnAll();
+            => this.pooler.ReturnAll();
 
         protected virtual void OnDeinitialize() { }
     }

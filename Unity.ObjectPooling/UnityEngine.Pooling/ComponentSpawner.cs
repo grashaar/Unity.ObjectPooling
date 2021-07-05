@@ -3,18 +3,12 @@ using System.Collections.Pooling;
 
 namespace UnityEngine.Pooling
 {
-    [RequireComponent(typeof(GameObjectPoolerManager), typeof(GameObjectPooler))]
+    [RequireComponent(typeof(GameObjectPooler))]
     public abstract class ComponentSpawner<T> : MonoBehaviour, IKeyedPool<T> where T : Component
     {
         [HideInInspector]
         [SerializeField]
-        private GameObjectPoolerManager manager = null;
-
-        [HideInInspector]
-        [SerializeField]
         private GameObjectPooler pooler = null;
-
-        protected GameObjectPoolerManager Manager => this.manager;
 
         protected GameObjectPooler Pooler => this.pooler;
 
@@ -24,7 +18,6 @@ namespace UnityEngine.Pooling
 
         protected virtual void Awake()
         {
-            this.manager = GetComponent<GameObjectPoolerManager>();
             this.pooler = GetComponent<GameObjectPooler>();
 
             RefreshKeys();
@@ -45,13 +38,14 @@ namespace UnityEngine.Pooling
         {
             RefreshKeys();
 
-            this.manager.Initialize(silent);
-            this.manager.Prepool();
+            this.pooler.Silent = silent;
+            this.pooler.PrepareItemMap();
+            this.pooler.Prepool();
         }
 
         public void Deinitialize()
         {
-            this.manager.DestroyAll();
+            this.pooler.DestroyAll();
 
             OnDeinitialize();
         }
@@ -96,7 +90,7 @@ namespace UnityEngine.Pooling
 
         public virtual T Get(string key)
         {
-            var gameObject = this.manager.Get(key);
+            var gameObject = this.pooler.Get(key);
 
             if (!gameObject)
                 return null;
@@ -116,7 +110,7 @@ namespace UnityEngine.Pooling
             if (!item)
                 return;
 
-            this.manager.Return(item.gameObject);
+            this.pooler.Return(item.gameObject);
         }
 
         public void Return(params T[] items)
@@ -136,7 +130,7 @@ namespace UnityEngine.Pooling
         }
 
         public void ReturnAll()
-            => this.manager.ReturnAll();
+            => this.pooler.ReturnAll();
 
         protected virtual void OnDeinitialize() { }
     }
