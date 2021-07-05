@@ -40,14 +40,14 @@ namespace UnityEngine.AddressableAssets.Pooling
                 this.poolersRoot = this.gameObject;
             }
 
-            var pools = this.poolersRoot.GetComponentsInChildren<AddressableGameObjectPooler>();
+            var poolers = this.poolersRoot.GetComponentsInChildren<AddressableGameObjectPooler>();
 
-            for (var i = 0; i < pools.Length; i++)
+            for (var i = 0; i < poolers.Length; i++)
             {
-                var pool = pools[i];
-                pool.Silent = this.silent;
+                var pooler = poolers[i];
+                pooler.Silent = this.silent;
 
-                var items = pool.Items;
+                var items = pooler.Items;
 
                 for (var k = 0; k < items.Count; k++)
                 {
@@ -59,7 +59,7 @@ namespace UnityEngine.AddressableAssets.Pooling
                     if (string.IsNullOrEmpty(item.Key))
                     {
                         if (!this.silent)
-                            Debug.LogWarning($"Pool key at index={k} is empty", pool);
+                            Debug.LogWarning($"Pooler key at index={k} is empty", pooler);
 
                         continue;
                     }
@@ -67,14 +67,15 @@ namespace UnityEngine.AddressableAssets.Pooling
                     if (this.poolerMap.ContainsKey(item.Key))
                     {
                         if (!this.silent)
-                            Debug.LogWarning($"Pool key={item.Key} has already been existing", pool);
+                            Debug.LogWarning($"Pooler key={item.Key} has already been existing", pooler);
 
                         continue;
                     }
 
-                    pool.PrepareItemMap();
-                    this.poolerMap.Add(item.Key, pool);
+                    this.poolerMap.Add(item.Key, pooler);
                 }
+
+                pooler.PrepareItemMap();
             }
         }
 
@@ -170,9 +171,9 @@ namespace UnityEngine.AddressableAssets.Pooling
 
         public void DestroyAll()
         {
-            foreach (var pool in this.poolerMap.Values)
+            foreach (var pooler in this.poolerMap.Values)
             {
-                pool.DestroyAll();
+                pooler.DestroyAll();
             }
 
             this.poolerMap.Clear();
