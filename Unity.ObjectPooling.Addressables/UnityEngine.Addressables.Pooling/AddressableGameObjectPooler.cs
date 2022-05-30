@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Pooling;
-using Pool = System.Collections.Pooling.Pool;
+
 #if UNITY_OBJECTPOOLING_UNITASK
 using Cysharp.Threading.Tasks;
 
@@ -164,7 +164,7 @@ namespace UnityEngine.AddressableAssets.Pooling
             if (this.prepoolList.Count <= 0)
                 return;
 
-            var pool = Pool.Provider.Pool<GameObjectList>();
+            var pool = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>();
 
             for (var i = 0; i < this.prepoolList.Count; i++)
             {

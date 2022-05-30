@@ -2,7 +2,6 @@
 #if UNITY_OBJECTPOOLING_ADDRESSABLES_1_17
 
 using System.Collections.Pooling;
-using Pool = System.Collections.Pooling.Pool;
 
 namespace UnityEngine.AddressableAssets.Pooling
 {
@@ -36,7 +35,7 @@ namespace UnityEngine.AddressableAssets.Pooling
             if (this.prepoolList.Count <= 0)
                 return;
 
-            var pool = Pool.Provider.Pool<GameObjectList>();
+            var pool = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>();
 
             for (var i = 0; i < this.prepoolList.Count; i++)
             {
