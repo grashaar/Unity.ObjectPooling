@@ -104,7 +104,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 
             if (!existed)
             {
-                list = Pool.Provider.Pool<GameObjectList>().Get();
+                list = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>().Get();
                 this.listMap.Add(key, list);
             }
 

@@ -254,7 +254,7 @@ namespace UnityEngine.Pooling
 
         public void ReturnAll()
         {
-            var keys = Pool.Provider.List<string>();
+            var keys = System.Collections.Pooling.Pool.Provider.List<string>();
             keys.AddRange(this.listMap.Keys);
 
             for (var i = 0; i < keys.Count; i++)
@@ -275,7 +275,7 @@ namespace UnityEngine.Pooling
                 }
             }
 
-            Pool.Provider.Return(keys);
+            System.Collections.Pooling.Pool.Provider.Return(keys);
         }
 
         public GameObject Get(string key)
@@ -475,8 +475,8 @@ namespace UnityEngine.Pooling
 
         public void DestroyAll()
         {
-            var pool = Pool.Provider.Pool<GameObjectList>();
-            var keys = Pool.Provider.List<string>();
+            var pool = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>();
+            var keys = System.Collections.Pooling.Pool.Provider.List<string>();
             keys.AddRange(this.listMap.Keys);
 
             for (var i = 0; i < keys.Count; i++)
@@ -495,7 +495,7 @@ namespace UnityEngine.Pooling
                 pool.Return(list);
             }
 
-            Pool.Provider.Return(keys);
+            System.Collections.Pooling.Pool.Provider.Return(keys);
         }
 
         [Serializable]

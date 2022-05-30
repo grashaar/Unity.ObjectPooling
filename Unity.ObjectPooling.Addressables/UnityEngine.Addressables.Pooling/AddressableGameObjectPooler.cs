@@ -194,7 +194,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 
         public void ReturnAll()
         {
-            var keys = Pool.Provider.List<string>();
+            var keys = System.Collections.Pooling.Pool.Provider.List<string>();
             keys.AddRange(this.listMap.Keys);
 
             for (var i = 0; i < keys.Count; i++)
@@ -211,7 +211,7 @@ namespace UnityEngine.AddressableAssets.Pooling
                 }
             }
 
-            Pool.Provider.Return(keys);
+            System.Collections.Pooling.Pool.Provider.Return(keys);
         }
 
         /// <summary>
@@ -265,7 +265,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 
             if (!existed)
             {
-                list = Pool.Provider.Pool<GameObjectList>().Get();
+                list = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>().Get();
                 this.listMap.Add(key, list);
             }
 
@@ -328,7 +328,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 
             if (!existed)
             {
-                list = Pool.Provider.Pool<GameObjectList>().Get();
+                list = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>().Get();
                 this.listMap.Add(key, list);
             }
 
@@ -435,7 +435,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 
         public void DestroyAll()
         {
-            var pool = Pool.Provider.Pool<GameObjectList>();
+            var pool = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>();
 
             foreach (var item in this.items)
             {
