@@ -108,14 +108,25 @@ namespace UnityEngine.Pooling
 
         public virtual GameObject Get(string key)
         {
-            var gameObject = this.pooler.Get(key);
+            var go = this.pooler.Get(key);
 
-            if (gameObject)
+            if (go)
             {
-                gameObject.SetActive(true);
+                go.SetActive(true);
             }
 
-            return gameObject;
+            return go;
+        }
+        public virtual GameObject Get(string key, Vector3 position, Quaternion rotation)
+        {
+            var go = this.pooler.Get(key, position, rotation);
+
+            if (go)
+            {
+                go.SetActive(true);
+            }
+
+            return go;
         }
 
         public void Return(GameObject item)

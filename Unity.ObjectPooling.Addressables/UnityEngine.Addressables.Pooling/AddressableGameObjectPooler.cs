@@ -6,6 +6,7 @@ using System.Collections.Pooling;
 
 #if UNITY_OBJECTPOOLING_UNITASK
 using Cysharp.Threading.Tasks;
+
 #else
 using System.Threading.Tasks;
 #endif
@@ -14,15 +15,15 @@ namespace UnityEngine.AddressableAssets.Pooling
 {
     public sealed partial class AddressableGameObjectPooler : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
-        [SerializeField]
-        private Transform poolRoot = null;
+        [SerializeField] private Transform poolRoot = null;
 
         [SerializeField, Tooltip("Disable warning logs")]
         private bool silent = false;
 
-        [Space]
-        [SerializeField]
-        private List<PoolItem> items = new List<PoolItem>();
+        [SerializeField, Tooltip("Reset game object's parent to this when return pool")]
+        private bool resetParent = false;
+
+        [Space] [SerializeField] private List<PoolItem> items = new List<PoolItem>();
 
         public bool Silent
         {
@@ -39,6 +40,11 @@ namespace UnityEngine.AddressableAssets.Pooling
         private void Awake()
         {
             this.prepoolList.AddRange(this.items);
+        }
+
+        private void OnDestroy()
+        {
+            DestroyAll();
         }
 
         private Transform GetPoolRoot()
@@ -146,6 +152,9 @@ namespace UnityEngine.AddressableAssets.Pooling
             await PrepoolAsync();
         }
 
+        /// <summary>
+        /// Prepool all items
+        /// </summary>
 #if UNITY_OBJECTPOOLING_UNITASK
         public async UniTask PrepoolAsync()
 #else
@@ -205,6 +214,12 @@ namespace UnityEngine.AddressableAssets.Pooling
             Pool.Provider.Return(keys);
         }
 
+        /// <summary>
+        /// Get game object from pool, if there is no pool, instantiate new one from AddrssableManager
+        /// </summary>
+        /// <param name="key">The key of the pooled game object</param>
+        /// <returns></returns>
+
 #if UNITY_OBJECTPOOLING_UNITASK
         public async UniTask<GameObject> GetAsync(string key)
 #else
@@ -260,7 +275,70 @@ namespace UnityEngine.AddressableAssets.Pooling
                 list.Add(obj);
 
             return obj;
-    }
+        }
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask<GameObject> GetAsync(string key, Vector3 position, Quaternion rotation,
+            Transform parent = null)
+#else
+        public async Task<GameObject> GetAsync(string key, Vector3 position, Quaternion rotation,
+            Transform parent = null)
+#endif
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                if (!this.silent)
+                    Debug.LogWarning("Key is empty", this);
+
+                return null;
+            }
+
+            var existed = this.listMap.TryGetValue(key, out var list);
+
+            if (existed)
+            {
+                for (var i = 0; i < list.Count; i++)
+                {
+                    var item = list[i];
+
+                    if (item && !item.activeInHierarchy)
+                    {
+                        item.transform.SetParent(parent);
+                        item.transform.position = position;
+                        item.transform.rotation = rotation;
+                        return item;
+                    }
+                }
+            }
+
+            if (!this.itemMap.TryGetValue(key, out var poolItem))
+            {
+                if (!this.silent)
+                    Debug.LogWarning($"Key={key} is not defined", this);
+
+                return null;
+            }
+
+            if (!GetPoolRoot())
+            {
+                if (!this.silent)
+                    Debug.LogWarning("Pool root is null", this);
+
+                return null;
+            }
+
+            if (!existed)
+            {
+                list = Pool.Provider.Pool<GameObjectList>().Get();
+                this.listMap.Add(key, list);
+            }
+
+            var obj = await InstantiateAsync(poolItem, list.Count, position, rotation, transform);
+
+            if (obj)
+                list.Add(obj);
+
+            return obj;
+        }
 
 #if UNITY_OBJECTPOOLING_UNITASK
         private async UniTask<GameObject> InstantiateAsync(PoolItem item, int number)
@@ -278,6 +356,22 @@ namespace UnityEngine.AddressableAssets.Pooling
             obj.name = $"{item.Key}-{number}";
             obj.SetActive(false);
 
+            return obj;
+        }
+
+        private async UniTask<GameObject> InstantiateAsync(PoolItem item, int number, Vector3 position,
+            Quaternion rotation, Transform parent = null)
+        {
+            if (item.Object == null)
+            {
+                Debug.LogError($"Cannot instantiate null object of key={item.Key}", this);
+                return null;
+            }
+
+            var obj = await AddressableGameObjectInstantiator.InstantiateAsync(item.Object, position, rotation,
+                GetPoolRoot());
+            obj.name = $"{item.Key}-{number}";
+            obj.SetActive(false);
             return obj;
         }
 
@@ -310,26 +404,30 @@ namespace UnityEngine.AddressableAssets.Pooling
         public void Return(GameObject item)
         {
             if (item && item.activeSelf)
+            {
                 item.SetActive(false);
+                if (resetParent)
+                    item.transform.SetParent(poolRoot, false);
+            }
         }
 
-        public void Return(params GameObject[] items)
+        public void Return(params GameObject[] gameObjects)
         {
-            if (items == null)
+            if (gameObjects == null)
                 return;
 
-            foreach (var item in items)
+            foreach (var item in gameObjects)
             {
                 Return(item);
             }
         }
 
-        public void Return(IEnumerable<GameObject> items)
+        public void Return(IEnumerable<GameObject> gameObjects)
         {
-            if (items == null)
+            if (gameObjects == null)
                 return;
 
-            foreach (var item in items)
+            foreach (var item in gameObjects)
             {
                 Return(item);
             }
@@ -357,13 +455,11 @@ namespace UnityEngine.AddressableAssets.Pooling
         [Serializable]
         public class PoolItem
         {
-            [SerializeField]
-            private string key = string.Empty;
+            [SerializeField] private string key = string.Empty;
 
             public AssetReferenceGameObject Object;
 
-            [SerializeField, Min(0)]
-            private int prepoolAmount;
+            [SerializeField, Min(0)] private int prepoolAmount;
 
             public string Key
             {
@@ -379,13 +475,19 @@ namespace UnityEngine.AddressableAssets.Pooling
         }
 
         [Serializable]
-        private class ItemMap : Dictionary<string, PoolItem> { }
+        private class ItemMap : Dictionary<string, PoolItem>
+        {
+        }
 
         [Serializable]
-        private class GameObjectListMap : Dictionary<string, GameObjectList> { }
+        private class GameObjectListMap : Dictionary<string, GameObjectList>
+        {
+        }
 
         [Serializable]
-        private class GameObjectList : List<GameObject> { }
+        private class GameObjectList : List<GameObject>
+        {
+        }
     }
 }
 

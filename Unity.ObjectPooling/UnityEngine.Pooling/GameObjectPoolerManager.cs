@@ -122,6 +122,32 @@ namespace UnityEngine.Pooling
 
             return obj;
         }
+        
+        public GameObject Get(string key, Vector3 position, Quaternion rotation, Transform parent = null)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                if (!this.silent)
+                    Debug.LogWarning("Key is empty");
+
+                return null;
+            }
+
+            if (!this.poolerMap.TryGetValue(key, out var pooler))
+            {
+                if (!this.silent)
+                    Debug.LogWarning($"Key={key} does not exist");
+
+                return null;
+            }
+
+            var obj = pooler.Get(key, position, rotation, parent);
+
+            if (!obj && !this.silent)
+                Debug.LogWarning($"Cannot spawn {key}");
+
+            return obj;
+        }
 
         public void Return(GameObject item)
         {
