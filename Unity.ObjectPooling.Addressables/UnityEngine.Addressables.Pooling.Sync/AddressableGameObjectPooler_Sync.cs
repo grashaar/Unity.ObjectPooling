@@ -2,6 +2,7 @@
 #if UNITY_OBJECTPOOLING_ADDRESSABLES_1_17
 
 using System.Collections.Pooling;
+using Pool = System.Collections.Pooling.Pool;
 
 namespace UnityEngine.AddressableAssets.Pooling
 {

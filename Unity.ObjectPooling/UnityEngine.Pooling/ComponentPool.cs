@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Pooling;
-
+using Pool = System.Collections.Pooling.Pool;
 namespace UnityEngine.Pooling
 {
     public class ComponentPool<T> : IPool<T>, IReturnInactive where T : Component

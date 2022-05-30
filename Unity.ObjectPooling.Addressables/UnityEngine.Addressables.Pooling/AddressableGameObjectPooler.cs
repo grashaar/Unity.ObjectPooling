@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Pooling;
-
+using Pool = System.Collections.Pooling.Pool;
 #if UNITY_OBJECTPOOLING_UNITASK
 using Cysharp.Threading.Tasks;
 

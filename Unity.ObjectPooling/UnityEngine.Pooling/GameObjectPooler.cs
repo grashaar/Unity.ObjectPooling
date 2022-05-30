@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Pooling;
-
+using Pool = System.Collections.Pooling.Pool;
 namespace UnityEngine.Pooling
 {
     public sealed class GameObjectPooler : MonoBehaviour, IKeyedPool<GameObject>
