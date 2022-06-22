@@ -153,7 +153,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 #if UNITY_OBJECTPOOLING_UNITASK
         public async UniTask<GameObject> GetAsync(string key, Vector3 position, Quaternion rotation, Transform parent = null)
 #else
-        public async Task<GameObject> GetAsync(string key)
+        public async Task<GameObject> GetAsync(string key, Vector3 position, Quaternion rotation, Transform parent = null)
 #endif
         {
             if (string.IsNullOrEmpty(key))

@@ -358,9 +358,13 @@ namespace UnityEngine.AddressableAssets.Pooling
 
             return obj;
         }
-
+#if UNITY_OBJECTPOOLING_UNITASK
         private async UniTask<GameObject> InstantiateAsync(PoolItem item, int number, Vector3 position,
             Quaternion rotation, Transform parent = null)
+#else
+        private async Task<GameObject> InstantiateAsync(PoolItem item, int number, Vector3 position,
+            Quaternion rotation, Transform parent = null)
+#endif
         {
             if (item.Object == null)
             {
