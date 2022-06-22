@@ -6,7 +6,6 @@
         "Unity.Addressables",
         "Unity.ResourceManager",
         "Unity.ObjectPooling",
-        "Unity.Supplements",
         "Unity.AddressablesManager"
     ],
     "includePlatforms": [],
