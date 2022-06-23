@@ -39,7 +39,9 @@ namespace UnityEngine.AddressableAssets
 #if UNITY_OBJECTPOOLING_ADDRESSABLES_MANAGER
             var obj = await AddressablesManager.InstantiateAsync(reference, position, rotation, parent);
 #else
-            var obj = await reference.InstantiateAsync(position, rotation, parent);
+            var operation = reference.InstantiateAsync(position, rotation, parent);
+            await operation.Task;
+            var obj = operation.Result;
 #endif
             return obj;
         }
