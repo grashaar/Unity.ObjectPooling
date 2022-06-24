@@ -6,15 +6,16 @@ namespace UnityEngine.Pooling
 {
     public sealed class GameObjectPooler : MonoBehaviour, IKeyedPool<GameObject>
     {
-        [SerializeField]
-        private Transform poolRoot = null;
+        [SerializeField] private Transform poolRoot = null;
 
         [SerializeField, Tooltip("Disable warning logs")]
         private bool silent = false;
 
-        [Space]
-        [SerializeField]
-        private List<PoolItem> items = new List<PoolItem>();
+        [Space] [SerializeField] private List<PoolItem> items = new List<PoolItem>();
+
+        [SerializeField, Tooltip("Reset game object's parent to this when return pool")]
+        private bool resetParent = false;
+
 
         public bool Silent
         {
@@ -33,7 +34,7 @@ namespace UnityEngine.Pooling
             this.prepoolList.AddRange(this.items);
         }
 
-        private Transform GetPoolRoot()
+        public Transform GetPoolRoot()
         {
             if (!this.poolRoot)
                 this.poolRoot = this.transform;
@@ -94,7 +95,12 @@ namespace UnityEngine.Pooling
             this.items.Clear();
             this.prepoolList.Clear();
         }
-
+        /// <summary>
+        /// Deregister all items and clear all lists
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="releaseHandler"></param>
+        /// <typeparam name="TReleaseHandler"></typeparam>
         public void Deregister<TReleaseHandler>(PoolItem item, TReleaseHandler releaseHandler)
             where TReleaseHandler : IKeyedReleaseHandler
         {
@@ -218,7 +224,7 @@ namespace UnityEngine.Pooling
             if (this.prepoolList.Count <= 0)
                 return;
 
-            var pool = Pool.Provider.Pool<GameObjectList>();
+            var pool = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>();
 
             for (var i = 0; i < this.prepoolList.Count; i++)
             {
@@ -230,7 +236,7 @@ namespace UnityEngine.Pooling
                 if (!this.itemMap.ContainsKey(item.Key))
                     this.itemMap.Add(item.Key, item);
 
-                var list =  pool.Get();
+                var list = pool.Get();
 
                 for (var k = 0; k < item.PrepoolAmount; k++)
                 {
@@ -248,7 +254,7 @@ namespace UnityEngine.Pooling
 
         public void ReturnAll()
         {
-            var keys = Pool.Provider.List<string>();
+            var keys = System.Collections.Pooling.Pool.Provider.List<string>();
             keys.AddRange(this.listMap.Keys);
 
             for (var i = 0; i < keys.Count; i++)
@@ -261,11 +267,15 @@ namespace UnityEngine.Pooling
                 for (var k = 0; k < list.Count; k++)
                 {
                     if (list[k] && list[k].activeSelf)
+                    {
                         list[k].SetActive(false);
+                        if (resetParent)
+                            list[k].transform.SetParent(poolRoot, false);
+                    }
                 }
             }
 
-            Pool.Provider.Return(keys);
+            System.Collections.Pooling.Pool.Provider.Return(keys);
         }
 
         public GameObject Get(string key)
@@ -321,6 +331,59 @@ namespace UnityEngine.Pooling
             return obj;
         }
 
+        public GameObject Get(string key, Vector3 position, Quaternion rotation, Transform parent = null)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                if (!this.silent)
+                    Debug.LogWarning("Key is empty", this);
+
+                return null;
+            }
+
+            var existed = this.listMap.TryGetValue(key, out var list);
+
+            if (existed)
+            {
+                for (var i = 0; i < list.Count; i++)
+                {
+                    var item = list[i];
+
+                    if (item && !item.activeInHierarchy)
+                        return item;
+                }
+            }
+
+            if (!this.itemMap.TryGetValue(key, out var poolItem))
+            {
+                if (!this.silent)
+                    Debug.LogWarning($"Key={key} is not defined", this);
+
+                return null;
+            }
+
+            if (!GetPoolRoot())
+            {
+                if (!this.silent)
+                    Debug.LogWarning("Pool root is null", this);
+
+                return null;
+            }
+
+            if (!existed)
+            {
+                list = new GameObjectList();
+                this.listMap.Add(key, list);
+            }
+
+            var obj = Instantiate(poolItem, list.Count, position, rotation, parent);
+
+            if (obj)
+                list.Add(obj);
+
+            return obj;
+        }
+
         private GameObject Instantiate(PoolItem item, int number)
         {
             if (!item.Object)
@@ -329,9 +392,24 @@ namespace UnityEngine.Pooling
                 return null;
             }
 
-            var obj = Instantiate(item.Object);
+            var obj = Instantiate(item.Object, GetPoolRoot(), true);
             obj.name = $"{item.Key}-{number}";
-            obj.transform.SetParent(GetPoolRoot(), true);
+            obj.SetActive(false);
+
+            return obj;
+        }
+
+        private GameObject Instantiate(PoolItem item, int number, Vector3 position, Quaternion rotation,
+            Transform parent)
+        {
+            if (!item.Object)
+            {
+                Debug.LogError($"Cannot instantiate null object of key={item.Key}", this);
+                return null;
+            }
+
+            var obj = Instantiate(item.Object, position, rotation, GetPoolRoot());
+            obj.name = $"{item.Key}-{number}";
             obj.SetActive(false);
 
             return obj;
@@ -366,7 +444,11 @@ namespace UnityEngine.Pooling
         public void Return(GameObject item)
         {
             if (item && item.activeSelf)
+            {
                 item.SetActive(false);
+                if (resetParent)
+                    item.transform.SetParent(poolRoot, false);
+            }
         }
 
         public void Return(params GameObject[] items)
@@ -393,8 +475,8 @@ namespace UnityEngine.Pooling
 
         public void DestroyAll()
         {
-            var pool = Pool.Provider.Pool<GameObjectList>();
-            var keys = Pool.Provider.List<string>();
+            var pool = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>();
+            var keys = System.Collections.Pooling.Pool.Provider.List<string>();
             keys.AddRange(this.listMap.Keys);
 
             for (var i = 0; i < keys.Count; i++)
@@ -413,19 +495,17 @@ namespace UnityEngine.Pooling
                 pool.Return(list);
             }
 
-            Pool.Provider.Return(keys);
+            System.Collections.Pooling.Pool.Provider.Return(keys);
         }
 
         [Serializable]
         public class PoolItem
         {
-            [SerializeField]
-            private string key = string.Empty;
+            [SerializeField] private string key = string.Empty;
 
             public GameObject Object;
 
-            [SerializeField, Min(0)]
-            private int prepoolAmount;
+            [SerializeField, Min(0)] private int prepoolAmount;
 
             public string Key
             {
@@ -441,12 +521,18 @@ namespace UnityEngine.Pooling
         }
 
         [Serializable]
-        private class ItemMap : Dictionary<string, PoolItem> { }
+        private class ItemMap : Dictionary<string, PoolItem>
+        {
+        }
 
         [Serializable]
-        private class GameObjectListMap : Dictionary<string, GameObjectList> { }
+        private class GameObjectListMap : Dictionary<string, GameObjectList>
+        {
+        }
 
         [Serializable]
-        private class GameObjectList : List<GameObject> { }
+        private class GameObjectList : List<GameObject>
+        {
+        }
     }
 }

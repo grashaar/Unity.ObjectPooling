@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace UnityEngine.AddressableAssets.Pooling
 {
+    /// <summary>
+    /// Controls the lifetime of pooled game objects.
+    /// </summary>
     [RequireComponent(typeof(AddressableGameObjectPooler))]
     public partial class AddressableGameObjectSpawner : MonoBehaviour, IAsyncKeyedPool<GameObject>
     {
@@ -27,7 +30,7 @@ namespace UnityEngine.AddressableAssets.Pooling
         protected virtual void Awake()
         {
             this.pooler = GetComponent<AddressableGameObjectPooler>();
-
+            
             RefreshKeys();
         }
 
@@ -54,7 +57,9 @@ namespace UnityEngine.AddressableAssets.Pooling
             this.pooler.PrepareItemMap();
             await this.pooler.PrepoolAsync();
         }
-
+        /// <summary>
+        /// Release all pooled items.
+        /// </summary>
         public void Deinitialize()
         {
             this.pooler.DestroyAll();
@@ -106,15 +111,16 @@ namespace UnityEngine.AddressableAssets.Pooling
         public virtual async Task<GameObject> GetAsync(string key)
 #endif
         {
-            var gameObject = await this.pooler.GetAsync(key);
+            var go = await this.pooler.GetAsync(key);
 
-            if (gameObject)
+            if (go)
             {
-                gameObject.SetActive(true);
+                go.SetActive(true);
             }
 
-            return gameObject;
+            return go;
         }
+        
 
         public void Return(GameObject item)
         {

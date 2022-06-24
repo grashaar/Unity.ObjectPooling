@@ -4,7 +4,7 @@ using System.Collections.Pooling;
 
 namespace UnityEngine.Pooling
 {
-    public sealed class GameObjectPool: IPool<GameObject>, IReturnInactive
+    public sealed class GameObjectPool : IPool<GameObject>, IReturnInactive
     {
         public ReadList<GameObject> ActiveObjects => this.activeObjects;
 
@@ -120,6 +120,9 @@ namespace UnityEngine.Pooling
             return item;
         }
 
+        /// <summary>
+        /// Destroys all objects in the pool by Object.Destroy()
+        /// </summary>
         public void DestroyAll()
         {
             ReturnAll();
@@ -135,6 +138,11 @@ namespace UnityEngine.Pooling
             }
         }
 
+        /// <summary>
+        /// Destroys all objects in the pool by a handler.
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <typeparam name="THandler"></typeparam>
         public void DestroyAll<THandler>(THandler handler) where THandler : IDestroyHandler
         {
             ReturnAll();

@@ -16,9 +16,9 @@ namespace UnityEngine.Pooling
 
         private readonly List<GameObject> activeObjects = new List<GameObject>();
         private readonly Queue<GameObject> pool = new Queue<GameObject>();
-        private readonly AsyncInstantiator<GameObject> asyncInstantiator;
+        private readonly IAsyncInstantiator<GameObject> asyncInstantiator;
 
-        public AsyncGameObjectPool(AsyncInstantiator<GameObject> instantiator)
+        public AsyncGameObjectPool(IAsyncInstantiator<GameObject> instantiator)
         {
             this.asyncInstantiator = instantiator ?? throw new ArgumentNullException(nameof(instantiator));
         }

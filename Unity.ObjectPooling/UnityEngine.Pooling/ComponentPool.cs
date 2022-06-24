@@ -87,7 +87,7 @@ namespace UnityEngine.Pooling
 
         public void ReturnInactive()
         {
-            var cache = Pool.Provider.List<T>();
+            var cache = System.Collections.Pooling.Pool.Provider.List<T>();
 
             for (var i = 0; i < this.activeObjects.Count; i++)
             {
@@ -98,7 +98,7 @@ namespace UnityEngine.Pooling
             }
 
             Return(cache);
-            Pool.Provider.Return(cache);
+            System.Collections.Pooling.Pool.Provider.Return(cache);
         }
 
         public T Get()

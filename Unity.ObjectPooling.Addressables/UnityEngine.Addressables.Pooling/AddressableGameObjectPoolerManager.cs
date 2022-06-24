@@ -30,7 +30,10 @@ namespace UnityEngine.AddressableAssets.Pooling
             if (this.initializeOnAwake)
                 Initialize();
         }
-
+        /// <summary>
+        /// Initialize the pooler manager, this will create all poolers and initialize them.
+        /// </summary>
+        /// <param name="silent"></param>
         public void Initialize(bool silent = false)
         {
             this.silent = silent;
@@ -147,7 +150,35 @@ namespace UnityEngine.AddressableAssets.Pooling
 
             return obj;
         }
+#if UNITY_OBJECTPOOLING_UNITASK
+        public async UniTask<GameObject> GetAsync(string key, Vector3 position, Quaternion rotation, Transform parent = null)
+#else
+        public async Task<GameObject> GetAsync(string key, Vector3 position, Quaternion rotation, Transform parent = null)
+#endif
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                if (!this.silent)
+                    Debug.LogWarning("Key is empty");
 
+                return null;
+            }
+
+            if (!this.poolerMap.TryGetValue(key, out var pooler))
+            {
+                if (!this.silent)
+                    Debug.LogWarning($"Key={key} does not exist");
+
+                return null;
+            }
+
+            var obj = await pooler.GetAsync(key, position, rotation, parent);
+
+            if (!obj && !this.silent)
+                Debug.LogWarning($"Cannot spawn {key}");
+
+            return obj;
+        }
         public void Return(GameObject item)
         {
             if (item && item.activeSelf)
@@ -175,7 +206,9 @@ namespace UnityEngine.AddressableAssets.Pooling
                 Return(item);
             }
         }
-
+        /// <summary>
+        /// Destroy all game objects in the poolers and release from memory.
+        /// </summary>
         public void DestroyAll()
         {
             foreach (var pooler in this.poolerMap.Values)

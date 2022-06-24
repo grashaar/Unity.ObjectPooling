@@ -35,7 +35,7 @@ namespace UnityEngine.AddressableAssets.Pooling
             if (this.prepoolList.Count <= 0)
                 return;
 
-            var pool = Pool.Provider.Pool<GameObjectList>();
+            var pool = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>();
 
             for (var i = 0; i < this.prepoolList.Count; i++)
             {
@@ -104,7 +104,7 @@ namespace UnityEngine.AddressableAssets.Pooling
 
             if (!existed)
             {
-                list = Pool.Provider.Pool<GameObjectList>().Get();
+                list = System.Collections.Pooling.Pool.Provider.Pool<GameObjectList>().Get();
                 this.listMap.Add(key, list);
             }
 

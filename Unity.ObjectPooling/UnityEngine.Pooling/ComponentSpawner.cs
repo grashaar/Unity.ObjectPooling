@@ -81,13 +81,20 @@ namespace UnityEngine.Pooling
 
             this.pooler.Deregister(key);
         }
-
+        /// <summary>
+        /// Deregister all pool items but not release them
+        /// </summary>
         public void DeregisterAllPoolItems()
         {
             this.keys.Clear();
             this.pooler.DeregisterAll();
         }
-
+        /// <summary>
+        /// Deregister all pool items and release them by a <see cref="TReleaseHandler"/>
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="releaseHandler"></param>
+        /// <typeparam name="TReleaseHandler"></typeparam>
         public void DeregisterPoolItem<TReleaseHandler>(string key, TReleaseHandler releaseHandler)
             where TReleaseHandler : IKeyedReleaseHandler
         {

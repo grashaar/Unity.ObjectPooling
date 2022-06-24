@@ -22,8 +22,29 @@ namespace UnityEngine.AddressableAssets
             return obj;
         }
 
+        public static async UniTask<GameObject> InstantiateAsync(AssetReferenceGameObject reference, Vector3 position,
+            Quaternion rotation, Transform parent = null)
+        {
+#if UNITY_OBJECTPOOLING_ADDRESSABLES_MANAGER
+            var obj = await AddressablesManager.InstantiateAsync(reference, position, rotation, parent);
 #else
-
+            var obj = await reference.InstantiateAsync(position, rotation, parent);
+#endif
+            return obj;
+        }
+#else
+        public static async Task<GameObject> InstantiateAsync(AssetReferenceGameObject reference, Vector3 position,
+            Quaternion rotation, Transform parent = null)
+        {
+#if UNITY_OBJECTPOOLING_ADDRESSABLES_MANAGER
+            var obj = await AddressablesManager.InstantiateAsync(reference, position, rotation, parent);
+#else
+            var operation = reference.InstantiateAsync(position, rotation, parent);
+            await operation.Task;
+            var obj = operation.Result;
+#endif
+            return obj;
+        }
         public static async Task<GameObject> InstantiateAsync(AssetReferenceGameObject reference, Transform parent = null, bool instantiateInWorldSpace = false)
         {
 #if UNITY_OBJECTPOOLING_ADDRESSABLES_MANAGER
